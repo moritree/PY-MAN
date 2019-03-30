@@ -4,6 +4,7 @@ import pygame
 class Pacman:
     def __init__(self, x, y, block_size, display, maze):
         self.block_size = block_size
+        self.offset = block_size*2
         self.x = x * block_size + block_size / 2
         self.y = y * block_size + block_size / 2
 
@@ -59,4 +60,4 @@ class Pacman:
 
     def draw(self):
         pygame.draw.rect(self.display, (255, 255, 0),
-                         (self.x - self.size / 2, self.y - self.size / 2, self.size, self.size))
+                         (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))

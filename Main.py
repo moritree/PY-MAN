@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import Maze
 import Pacman
 import Items
@@ -8,7 +9,7 @@ class Main:
     def __init__(self):
         self.block_size = 30
         self.display_width = 19 * self.block_size
-        self.display_height = self.display_width
+        self.display_height = self.display_width + 2*self.block_size
 
         self.fps = 60
         self.fps_clock = pygame.time.Clock()
@@ -36,15 +37,23 @@ class Main:
         player.move()
         factory.check_collisions()
 
-    def draw(self, maze, player, factory):
+    def draw(self, display, maze, player, factory):
+        pygame.draw.rect(display, (0, 0, 0), (0, 0, self.display_width, self.display_height))
+
         maze.draw()
         factory.draw_all()
         player.draw()
+
+        GAME_FONT = pygame.freetype.SysFont("Helvetica.ttf", 40)
+        GAME_FONT.render_to(display, (15, 15), "COINS: " + str(self.coins), (255, 255, 255))
+
 
     def run(self):
         pygame.init()
         pygame.display.set_caption("Pacman")
         display_surf = pygame.display.set_mode((self.display_width, self.display_height))
+
+        pygame.font.init()
 
         maze = Maze.Maze(display_surf, self.block_size)
         player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze)
@@ -56,7 +65,7 @@ class Main:
         while running:
             self.events(player)
             self.loop(maze, player, factory)
-            self.draw(maze, player, factory)
+            self.draw(display_surf, maze, player, factory)
 
             pygame.display.update()
             self.fps_clock.tick(self.fps)

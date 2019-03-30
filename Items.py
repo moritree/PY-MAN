@@ -35,6 +35,7 @@ class Coin:
         self.display = display
         self.x = x * block_size + block_size / 2
         self.y = y * block_size + block_size / 2
+        self.offset = block_size*2
 
         self.here = True
         self.timer = 0
@@ -42,7 +43,7 @@ class Coin:
     def draw(self):
         if self.here:
             half = self.coin_size/2
-            pygame.draw.rect(self.display, (255, 255, 255), (self.x - half, self.y - half,
+            pygame.draw.rect(self.display, (255, 255, 255), (self.x - half, self.y - half + self.offset,
                                                              self.coin_size, self.coin_size))
 
     def collide(self, player, main):

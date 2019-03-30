@@ -5,6 +5,7 @@ class Maze:
     def __init__(self, display, block_size):
         self.display = display
         self.block_size = block_size
+        self.offset = block_size * 2
 
         # draw maze
         self.maze_array = [[0] * 19 for i in range(19)]
@@ -34,8 +35,8 @@ class Maze:
         for i in range(19):
             for j in range(19):
                 if self.maze_array[j][i] == 1:
-                    pygame.draw.rect(self.display, (0, 0, 210),
-                                     (i * self.block_size, j * self.block_size, self.block_size, self.block_size))
+                    pygame.draw.rect(self.display, (0, 0, 210), (i * self.block_size, j * self.block_size + self.offset,
+                                                                 self.block_size, self.block_size))
                 elif self.maze_array[j][i] == 0:
-                    pygame.draw.rect(self.display, (0, 0, 0),
-                                     (i * self.block_size, j * self.block_size, self.block_size, self.block_size))
+                    pygame.draw.rect(self.display, (0, 0, 0), (i * self.block_size, j * self.block_size + self.offset,
+                                                               self.block_size, self.block_size))
