@@ -77,7 +77,7 @@ class Pacman:
     def draw(self):
         colour = (255, 255, 0)  # yellow by default
         if self.powered_up:
-            colour = (0, 100, 255)  # blue when powered up
+            colour = (0, 150, 255)  # blue when powered up
 
         pygame.draw.rect(self.display, colour,
                          (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))
