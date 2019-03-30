@@ -44,8 +44,8 @@ class Main:
         factory.draw_all()
         player.draw()
 
-        GAME_FONT = pygame.freetype.SysFont("Helvetica.ttf", 40)
-        GAME_FONT.render_to(display, (15, 15), "COINS: " + str(self.coins), (255, 255, 255))
+        game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
+        game_font.render_to(display, (15, 15), "COINS: " + str(self.coins), (255, 255, 255))
 
     def run(self):
         pygame.init()
