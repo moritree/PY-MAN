@@ -2,7 +2,7 @@ import pygame
 
 
 class Pacman:
-    def __init__(self, x, y, block_size, display, maze):
+    def __init__(self, x, y, block_size, display, maze, main):
         self.block_size = block_size
         self.offset = block_size*2
         self.x = x * block_size + block_size / 2
@@ -13,11 +13,27 @@ class Pacman:
 
         self.display = display
         self.maze = maze
+        self.main = main
 
         self.look_dir = "UP"
         self.move_dir = "UP"
+        self.powered_up = False
+
+        self.timer = 0
+        self.power_time = 10
+
+
+    def power_up(self):
+        self.powered_up = True
+        self.timer = 0
 
     def move(self):
+        if self.powered_up:
+                if self.timer >= self.power_time * self.main.fps:
+                     self.powered_up = False
+                else:
+                    self.timer += 1
+
         # check movement directions
         half_block = self.block_size/2
         can_up = False
@@ -59,5 +75,9 @@ class Pacman:
         if self.move_dir == "RIGHT" and can_right: self.x += self.step_len
 
     def draw(self):
-        pygame.draw.rect(self.display, (255, 255, 0),
+        colour = (255, 255, 0)  # yellow by default
+        if self.powered_up:
+            colour = (0, 100, 255)  # blue when powered up
+
+        pygame.draw.rect(self.display, colour,
                          (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))

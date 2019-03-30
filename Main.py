@@ -47,7 +47,6 @@ class Main:
         GAME_FONT = pygame.freetype.SysFont("Helvetica.ttf", 40)
         GAME_FONT.render_to(display, (15, 15), "COINS: " + str(self.coins), (255, 255, 255))
 
-
     def run(self):
         pygame.init()
         pygame.display.set_caption("Pacman")
@@ -56,10 +55,10 @@ class Main:
         pygame.font.init()
 
         maze = Maze.Maze(display_surf, self.block_size)
-        player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze)
+        player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
         factory = Items.ItemFactory(maze.maze_array, self.block_size,
                                     display_surf, player, self)
-        factory.make_coins()
+        factory.setup()
 
         running = True
         while running:
