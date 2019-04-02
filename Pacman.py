@@ -22,8 +22,9 @@ class Pacman:
         self.timer = 0
         self.power_time = 10
 
-    def power_up(self):
+    def power_up(self, time):
         self.powered_up = True
+        self.power_time = time
         self.timer = 0
 
     def move(self):

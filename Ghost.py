@@ -40,8 +40,7 @@ class Ghost:
         self.x = x * block_size - block_size / 2
         self.y = y * block_size - block_size / 2
 
-        self.color = color
-        self.blue_color = (50, 50, 200)
+        self.base_color = color
         self.here = True
 
         self.timer = 0
@@ -210,9 +209,15 @@ class Ghost:
 
     def draw(self):
         if self.here:
-            color = self.color
             if self.player.powered_up:
-                color = self.blue_color
+                # blink in the last 2 seconds of player's power up time
+                if 0 < self.player.timer % 40 < 20 \
+                        and self.player.timer + 2 * self.main.fps >= self.player.power_time * self.main.fps:
+                    color = (200, 200, 255)
+                else:
+                    color = (50, 50, 200)
+            else:
+                color = self.base_color
 
             pygame.draw.rect(self.display, color, (self.x - self.size / 2, self.y - self.size / 2 + self.offset,
                                                    self.size, self.size))
