@@ -58,12 +58,20 @@ class Main:
 
         pygame.font.init()
 
+        # initialize maze and player
         maze = Maze.Maze(display_surf, self.block_size)
         player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
+
+        # generate all coins and powerups
         factory = Items.ItemFactory(maze, self.block_size,
                                     display_surf, player, self)
         factory.setup()
-        ghost1 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 100, 150))
+
+        # spawn ghosts
+        ghost1 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 9, 10, (255, 80, 80))
+        ghost2 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 10, (255, 100, 150))
+        ghost3 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 11, 10, (100, 255, 255))
+        ghost4 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 200, 000))
 
         running = True
         while running:
