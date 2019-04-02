@@ -2,13 +2,14 @@ import pygame
 
 
 class ItemFactory:
-    def __init__(self, maze_array, block_size, display, player, main):
-        self.array = maze_array
+    def __init__(self, maze, block_size, display, player, main):
+        self.array = maze.maze_array
         self.block_size = block_size
 
         self.display = display
         self.player = player
         self.main = main
+        self.maze = maze
 
     def setup(self):
         self.make_powerups()

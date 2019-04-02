@@ -3,6 +3,7 @@ import pygame.freetype
 import Maze
 import Pacman
 import Items
+import Ghost
 
 
 class Main:
@@ -35,7 +36,9 @@ class Main:
 
     def loop(self, maze, player, factory):
         player.move()
+        Ghost.move_all()
         factory.check_collisions()
+        Ghost.check_collisions()
 
     def draw(self, display, maze, player, factory):
         pygame.draw.rect(display, (0, 0, 0), (0, 0, self.display_width, self.display_height))
@@ -43,22 +46,24 @@ class Main:
         maze.draw()
         factory.draw_all()
         player.draw()
+        Ghost.draw_ghosts()
 
         game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
-        game_font.render_to(display, (15, 15), "COINS: " + str(self.coins), (255, 255, 255))
+        game_font.render_to(display, (15, 15), "SCORE: " + str(self.coins), (255, 255, 255))
 
     def run(self):
         pygame.init()
-        pygame.display.set_caption("Pacman")
+        pygame.display.set_caption("PY-MAN")
         display_surf = pygame.display.set_mode((self.display_width, self.display_height))
 
         pygame.font.init()
 
         maze = Maze.Maze(display_surf, self.block_size)
         player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
-        factory = Items.ItemFactory(maze.maze_array, self.block_size,
+        factory = Items.ItemFactory(maze, self.block_size,
                                     display_surf, player, self)
         factory.setup()
+        ghost1 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 100, 150))
 
         running = True
         while running:
