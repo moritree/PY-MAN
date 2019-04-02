@@ -62,8 +62,8 @@ class Coin:
     def draw(self):
         if self.here:
             half = self.coin_size/2
-            pygame.draw.rect(self.display, (255, 255, 255), (self.x - half, self.y - half + self.offset,
-                                                             self.coin_size, self.coin_size))
+            pygame.draw.ellipse(self.display, (255, 255, 255), (self.x - half, self.y - half + self.offset,
+                                                                self.coin_size, self.coin_size))
 
     def collide(self, player, main):
         dist_x = abs(self.x - player.x)
@@ -76,7 +76,7 @@ class Coin:
 
 class PowerUp:
     instances = []
-    size = 10
+    size = 12
 
     def __init__(self, x, y, block_size, display):
         PowerUp.instances.append(self)
@@ -94,8 +94,8 @@ class PowerUp:
     def draw(self):
         if self.here:
             half = self.size/2
-            pygame.draw.rect(self.display, (255, 255, 255), (self.x - half, self.y - half + self.offset,
-                                                             self.size, self.size))
+            pygame.draw.ellipse(self.display, (255, 255, 255), (self.x - half, self.y - half + self.offset,
+                                                                self.size, self.size))
 
     def collide(self, player, main):
         dist_x = abs(self.x - player.x)
