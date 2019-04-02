@@ -17,6 +17,7 @@ class Main:
         self.tick_counter = 1
 
         self.coins = 0
+        self.running = True
 
     def events(self, player):
         for event in pygame.event.get():
@@ -73,8 +74,7 @@ class Main:
         ghost3 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 11, 10, (100, 255, 255))
         ghost4 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 200, 000))
 
-        running = True
-        while running:
+        while self.running:
             self.events(player)
             self.loop(maze, player, factory)
             self.draw(display_surf, maze, player, factory)

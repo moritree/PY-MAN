@@ -33,7 +33,7 @@ class Ghost:
         self.look_dir = "UP"
         self.move_dir = "UP"
 
-        self.step_len = block_size / 20
+        self.step_len = block_size / 24
         self.slow_step = block_size / 30
 
         self.size = 18
@@ -221,6 +221,11 @@ class Ghost:
         dist_x = abs(self.x - self.player.x)
         dist_y = abs(self.y - self.player.y)
 
-        if dist_x < self.size and dist_y < self.size and self.player.powered_up and self.here:
-            self.here = False
-            self.main.coins += 10
+        touch_distance = self.size/2 + self.player.size/2
+
+        if dist_x < touch_distance and dist_y < touch_distance and self.here:
+            if self.player.powered_up:
+                self.here = False
+                self.main.coins += 10
+            else:
+                self.main.running = False
