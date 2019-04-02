@@ -9,7 +9,8 @@ class Pacman:
         self.y = y * block_size + block_size / 2
 
         self.size = 22
-        self.step_len = block_size/30
+        self.step_len = block_size / 15
+        self.powered_step = block_size / 13
 
         self.display = display
         self.maze = maze
@@ -28,9 +29,9 @@ class Pacman:
         self.timer = 0
 
     def move(self):
-        self.step_len = self.block_size / 20
+        step = self.step_len
         if self.powered_up:
-            self.step_len = self.block_size / 15
+            step = self.powered_step
             if self.timer >= self.power_time * self.main.fps:
                 self.powered_up = False
             else:
@@ -50,23 +51,23 @@ class Pacman:
 
             # move
             if self.move_dir == "UP" and self.maze.can_move(self, "UP"):
-                self.y -= self.step_len
+                self.y -= step
                 self.maze.center(self, "x", self.x)
             if self.move_dir == "DOWN" and self.maze.can_move(self, "DOWN"):
-                self.y += self.step_len
+                self.y += step
                 self.maze.center(self, "x", self.x)
             if self.move_dir == "LEFT" and self.maze.can_move(self, "LEFT"):
-                self.x -= self.step_len
+                self.x -= step
                 self.maze.center(self, "y", self.y)
             if self.move_dir == "RIGHT" and self.maze.can_move(self, "RIGHT"):
-                self.x += self.step_len
+                self.x += step
                 self.maze.center(self, "y", self.y)
         else:
             if self.move_dir == "LEFT":
-                self.x -= self.step_len
+                self.x -= step
                 self.maze.center(self, "y", self.y)
             if self.move_dir == "RIGHT":
-                self.x += self.step_len
+                self.x += step
                 self.maze.center(self, "y", self.y)
 
             # screen wrap

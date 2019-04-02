@@ -33,8 +33,8 @@ class Ghost:
         self.look_dir = "UP"
         self.move_dir = "UP"
 
-        self.step_len = block_size / 24
-        self.slow_step = block_size / 30
+        self.step_len = block_size / 17
+        self.slow_step = block_size / 19
 
         self.size = 18
         self.x = x * block_size - block_size / 2
