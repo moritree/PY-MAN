@@ -52,6 +52,7 @@ class Ghost:
             if self.player.powered_up:
                 step = self.slow_step
 
+            # only try changing direction within bounds of maze array
             if self.block_size < self.x < self.main.display_width - self.block_size:
                 # Check if this ghost can 'see' the player.
                 # If the player is in the same row or column as the ghost and there are no walls between them,
@@ -61,9 +62,6 @@ class Ghost:
                 my_col = int(self.x / self.block_size)
                 player_row = int(self.player.y / self.block_size)
                 player_col = int(self.player.x / self.block_size)
-
-                # print(str(my_col) + " " + str(player_col))
-                # print(str(my_row) + " " + str(player_row))
 
                 # Check whether the player is visible from this ghost's perspective
                 # If they are on the same row or column, check all tiles in between
@@ -126,17 +124,16 @@ class Ghost:
                             if my_col > player_col and self.maze.can_move(self, "LEFT"):
                                 self.look_dir = "LEFT"
                             elif abs(self.x - self.player.x) < self.step_len:
-                                self.look_dir = "x"
+                                self.look_dir = None
                             elif self.maze.can_move(self, "RIGHT"):
                                 self.look_dir = "RIGHT"
                         if my_col == player_col:
                             if my_row > player_row and self.maze.can_move(self, "UP"):
                                 self.look_dir = "UP"
                             elif abs(self.y - self.player.y) < self.step_len:
-                                self.look_dir = "x"
+                                self.look_dir = None
                             elif self.maze.can_move(self, "DOWN"):
                                 self.look_dir = "DOWN"
-
                 # if player not visible, pick a random movement direction
                 else:
                     if self.move_dir == "UP":
@@ -173,7 +170,7 @@ class Ghost:
                                 self.maze.can_move(self, "UP") and not self.maze.can_move(self, "DOWN"):
                             self.move_dir = "LEFT"
 
-                # move
+                # do movement
                 if self.move_dir == "UP" and self.maze.can_move(self, "UP"):
                     self.y -= step
                     self.maze.center(self, "x", self.x)
@@ -186,6 +183,8 @@ class Ghost:
                 if self.move_dir == "RIGHT" and self.maze.can_move(self, "RIGHT"):
                     self.x += step
                     self.maze.center(self, "y", self.y)
+
+            # if outside maze, keep moving until wrapped to the other side of the screen
             else:
                 if self.move_dir == "LEFT":
                     self.x -= self.step_len
@@ -199,6 +198,7 @@ class Ghost:
                     self.x = self.main.display_width
                 if self.x > self.size + self.main.display_width:
                     self.x = -self.size
+
         # respawn
         elif self.timer >= 60*10:
             self.x = 10 * self.block_size - self.block_size / 2
