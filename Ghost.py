@@ -17,6 +17,17 @@ def move_all():
         ghost.move()
 
 
+def turn_blue():
+    for ghost in Ghost.instances:
+        ghost.blue = True
+        ghost.timer = 0
+
+
+def end_blue():
+    for ghost in Ghost.instances:
+        ghost.blue = False
+
+
 class Ghost:
     instances = []
 
@@ -32,6 +43,9 @@ class Ghost:
 
         self.look_dir = "UP"
         self.move_dir = "UP"
+
+        self.blue = False
+        self.respawn_time = 3
 
         self.step_len = block_size / 17
         self.slow_step = block_size / 19
@@ -49,7 +63,10 @@ class Ghost:
     def move(self):
         if self.here:
             step = self.step_len
-            if self.player.powered_up:
+            if self.timer >= self.player.power_time * self.main.fps:
+                self.blue = False
+            elif self.blue:
+                self.timer += 1
                 step = self.slow_step
 
             # only try changing direction within bounds of maze array
@@ -99,7 +116,7 @@ class Ghost:
                     # Run away from the player if player is powered up
                     # If it is able to continue in the direction it is facing it will
                     # do so, so long as it does not go towards the player
-                    if self.player.powered_up:
+                    if self.blue:
                         if my_row == player_row:
                             if my_col > player_col:
                                 direction = random.choice(["UP", "DOWN", "RIGHT"])
@@ -200,7 +217,7 @@ class Ghost:
                     self.x = -self.size
 
         # respawn
-        elif self.timer >= 60*10:
+        elif self.timer >= self.main.fps * self.respawn_time:
             self.x = 10 * self.block_size - self.block_size / 2
             self.y = 10 * self.block_size - self.block_size / 2
             self.here = True
@@ -209,10 +226,10 @@ class Ghost:
 
     def draw(self):
         if self.here:
-            if self.player.powered_up:
+            if self.blue and self.player.powered_up:
                 # blink in the last 2 seconds of player's power up time
-                if 0 < self.player.timer % 40 < 20 \
-                        and self.player.timer + 2 * self.main.fps >= self.player.power_time * self.main.fps:
+                if 0 < self.timer % 40 < 20 \
+                        and self.timer + (2 * self.main.fps) >= self.player.power_time * self.main.fps:
                     color = (200, 200, 255)
                 else:
                     color = (50, 50, 200)
@@ -229,8 +246,12 @@ class Ghost:
         touch_distance = self.size/2 + self.player.size/2
 
         if dist_x < touch_distance and dist_y < touch_distance and self.here:
-            if self.player.powered_up:
+            if self.blue and self.player.powered_up:
+                self.timer = 0
                 self.here = False
                 self.main.coins += 10
+                self.blue = False
             else:
                 self.main.running = False
+
+

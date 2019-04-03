@@ -1,4 +1,5 @@
 import pygame
+import Ghost
 
 
 class Pacman:
@@ -16,24 +17,32 @@ class Pacman:
         self.maze = maze
         self.main = main
 
-        self.look_dir = "UP"
-        self.move_dir = "UP"
+        self.look_dir = None
+        self.move_dir = None
+
         self.powered_up = False
+        self.previously_powered = False
 
         self.timer = 0
         self.power_time = 10
 
     def power_up(self, time):
+        Ghost.turn_blue()
+        self.previously_powered = False
         self.powered_up = True
         self.power_time = time
         self.timer = 0
 
     def move(self):
         step = self.step_len
+
         if self.powered_up:
             step = self.powered_step
             if self.timer >= self.power_time * self.main.fps:
                 self.powered_up = False
+                Ghost.end_blue()
+            elif self.timer >= 1:
+                self.previously_powered = True
             else:
                 self.timer += 1
 
@@ -77,9 +86,5 @@ class Pacman:
                 self.x = -self.size
 
     def draw(self):
-        colour = (255, 255, 0)  # yellow by default
-        if self.powered_up:
-            colour = (0, 150, 255)  # blue when powered up
-
-        pygame.draw.ellipse(self.display, colour,
+        pygame.draw.ellipse(self.display, (255, 255, 0),
                             (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))

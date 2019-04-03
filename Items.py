@@ -103,4 +103,4 @@ class PowerUp:
 
         if dist_x < self.size and dist_y < self.size and self.here:
             self.here = False
-            player.power_up(10)
+            player.power_up(6)

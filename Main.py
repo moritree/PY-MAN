@@ -19,6 +19,8 @@ class Main:
         self.coins = 0
         self.running = True
 
+        self.game_state = "run"
+
     def events(self, player):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -36,10 +38,11 @@ class Main:
         return
 
     def loop(self, maze, player, factory):
-        player.move()
-        Ghost.move_all()
-        factory.check_collisions()
-        Ghost.check_collisions()
+        if self.game_state == "run":
+            player.move()
+            factory.check_collisions()
+            Ghost.move_all()
+            Ghost.check_collisions()
 
     def draw(self, display, maze, player, factory):
         pygame.draw.rect(display, (0, 0, 0), (0, 0, self.display_width, self.display_height))
@@ -64,8 +67,7 @@ class Main:
         player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
 
         # generate all coins and powerups
-        factory = Items.ItemFactory(maze, self.block_size,
-                                    display_surf, player, self)
+        factory = Items.ItemFactory(maze, self.block_size, display_surf, player, self)
         factory.setup()
 
         # spawn ghosts
