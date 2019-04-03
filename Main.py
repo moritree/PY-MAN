@@ -55,6 +55,14 @@ class Main:
         game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
         game_font.render_to(display, (15, 15), "SCORE: " + str(self.coins), (255, 255, 255))
 
+    def win_condition(self):
+        flag = False
+        for coin in Items.Coin.instances:
+            if coin.here:
+                flag = True
+        if not flag:
+            self.game_state = "win"
+
     def run(self):
         pygame.init()
         pygame.display.set_caption("PY-MAN")
@@ -66,7 +74,7 @@ class Main:
         maze = Maze.Maze(display_surf, self.block_size)
         player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
 
-        # generate all coins and powerups
+        # generate all coins and power ups
         factory = Items.ItemFactory(maze, self.block_size, display_surf, player, self)
         factory.setup()
 
@@ -77,13 +85,19 @@ class Main:
         ghost4 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 200, 000))
 
         while self.running:
-            self.events(player)
-            self.loop(maze, player, factory)
-            self.draw(display_surf, maze, player, factory)
+            if self.game_state == "run":
+                self.events(player)
+                self.loop(maze, player, factory)
+                self.draw(display_surf, maze, player, factory)
 
-            pygame.display.update()
-            self.fps_clock.tick(self.fps)
-            self.tick_counter += 1
+                pygame.display.update()
+                self.fps_clock.tick(self.fps)
+                self.tick_counter += 1
+
+            elif self.game_state == "win":
+                self.running = False
+            elif self.game_state == "lose":
+                self.running = False
 
 
 if __name__ == "__main__":

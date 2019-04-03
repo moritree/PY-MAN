@@ -252,6 +252,6 @@ class Ghost:
                 self.main.coins += 10
                 self.blue = False
             else:
-                self.main.running = False
+                self.main.game_state = "lose"
 
 
