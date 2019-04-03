@@ -2,10 +2,10 @@ import pygame
 
 
 class Maze:
-    def __init__(self, display, block_size):
+    def __init__(self, display, main):
         self.display = display
-        self.block_size = block_size
-        self.offset = block_size * 2
+        self.block_size = main.block_size
+        self.offset = main.offset
 
         # draw maze
         self.maze_array = [[0] * 19 for i in range(19)] # [y][x]
@@ -48,28 +48,28 @@ class Maze:
         setattr(entity, var, int(coord / self.block_size) * self.block_size + self.block_size / 2)
 
     def can_move(self, entity, dir):
-        if dir == "UP":
+        if dir == "UP" or dir == 3:
             tmp_y = int((entity.y - self.block_size / 2 - entity.step_len) / self.block_size)
             if self.maze_array[tmp_y][
                 int((entity.x + (self.block_size / 2) - entity.step_len) / self.block_size)] != 1 and \
                     self.maze_array[tmp_y][
                         int((entity.x - (self.block_size / 2) + entity.step_len) / self.block_size)] != 1:
                 return True
-        elif dir == "DOWN":
+        elif dir == "DOWN" or dir == 1:
             tmp_y = int((entity.y + self.block_size / 2 + entity.step_len) / self.block_size)
             if self.maze_array[tmp_y][
                 int((entity.x + (self.block_size / 2) - entity.step_len) / self.block_size)] != 1 and \
                     self.maze_array[tmp_y][
                         int((entity.x - (self.block_size / 2) + entity.step_len) / self.block_size)] != 1:
                 return True
-        elif dir == "LEFT":
+        elif dir == "LEFT" or dir == 2:
             tmp_x = int((entity.x - self.block_size / 2 - entity.step_len) / self.block_size)
             if self.maze_array[int((entity.y + (self.block_size / 2) - entity.step_len) / self.block_size)][
                 tmp_x] != 1 and \
                     self.maze_array[int((entity.y - (self.block_size / 2) + entity.step_len) / self.block_size)][
                         tmp_x] != 1:
                 return True
-        elif dir == "RIGHT":
+        elif dir == "RIGHT" or dir == 0:
             tmp = int((entity.x + entity.block_size / 2 + entity.step_len) / self.block_size)
             if self.maze_array[int((entity.y + (self.block_size / 2) - entity.step_len) / self.block_size)][
                 tmp] != 1 and \

@@ -27,7 +27,7 @@ class ItemFactory:
                 if self.array[j][i] == 0:
                     flag = False
                     for item in PowerUp.instances:
-                        if (item.x_coord == i and item.y_coord == j):
+                        if item.x_coord == i and item.y_coord == j:
                             flag = True
                     if not flag:
                         coin = Coin(i, j, self.block_size, self.display)

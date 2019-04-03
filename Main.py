@@ -1,7 +1,7 @@
 import pygame
 import pygame.freetype
 import Maze
-import Pacman
+import PacMan
 import Items
 import Ghost
 
@@ -9,6 +9,7 @@ import Ghost
 class Main:
     def __init__(self):
         self.block_size = 30
+        self.offset = self.block_size * 2
         self.display_width = 19 * self.block_size
         self.display_height = self.display_width + 2*self.block_size
 
@@ -25,13 +26,13 @@ class Main:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    setattr(player, "look_dir", "UP")
+                    setattr(player, "look_dir", player.DIR["UP"])
                 if event.key == pygame.K_DOWN:
-                    setattr(player, "look_dir", "DOWN")
+                    setattr(player, "look_dir", player.DIR["DOWN"])
                 if event.key == pygame.K_LEFT:
-                    setattr(player, "look_dir", "LEFT")
+                    setattr(player, "look_dir", player.DIR["LEFT"])
                 if event.key == pygame.K_RIGHT:
-                    setattr(player, "look_dir", "RIGHT")
+                    setattr(player, "look_dir", player.DIR["RIGHT"])
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
@@ -64,25 +65,25 @@ class Main:
             self.game_state = "win"
 
     def run(self):
+        # initialize
         pygame.init()
         pygame.display.set_caption("PY-MAN")
         display_surf = pygame.display.set_mode((self.display_width, self.display_height))
-
         pygame.font.init()
 
-        # initialize maze and player
-        maze = Maze.Maze(display_surf, self.block_size)
-        player = Pacman.Pacman(9, 11, self.block_size, display_surf, maze, self)
+        # spawn maze and player
+        maze = Maze.Maze(display_surf, self)
+        player = PacMan.PacMan(9, 11, display_surf, maze, self)
 
         # generate all coins and power ups
         factory = Items.ItemFactory(maze, self.block_size, display_surf, player, self)
         factory.setup()
 
         # spawn ghosts
-        ghost1 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 9, 10, (255, 80, 80))
-        ghost2 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 10, (255, 100, 150))
-        ghost3 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 11, 10, (100, 255, 255))
-        ghost4 = Ghost.Ghost(maze, self.block_size, display_surf, player, self, 10, 8, (255, 200, 000))
+        ghost1 = Ghost.Ghost(maze, display_surf, player, self, 9, 10, (255, 80, 80))
+        ghost2 = Ghost.Ghost(maze, display_surf, player, self, 10, 10, (255, 100, 150))
+        ghost3 = Ghost.Ghost(maze, display_surf, player, self, 11, 10, (100, 255, 255))
+        ghost4 = Ghost.Ghost(maze, display_surf, player, self, 10, 8, (255, 200, 000))
 
         while self.running:
             if self.game_state == "run":
