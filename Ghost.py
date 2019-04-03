@@ -50,7 +50,7 @@ class Ghost:
         # Constants
         self.block_size = main.block_size
         self.offset = main.offset
-        self.size = 18
+        self.size = 24
         self.base_color = color
         self.step_len = self.block_size / 17  # normal movement speed
         self.slow_step = self.block_size / 19  # movement speed when turned blue
@@ -194,11 +194,11 @@ class Ghost:
     def draw(self):
         def draw_body(col):
             pygame.draw.ellipse(self.display, col, (self.x - self.size / 2, self.y + self.offset - self.size / 2,
-                                                    self.size, self.size * 0.9))
+                                                    self.size, self.size * 0.95))
             pygame.draw.rect(self.display, col, (self.x - self.size / 2, self.y + self.offset,
                                                  self.size, self.size / 4))
 
-            # wobbles
+            # alternate wobble shape
             if 0 < self.main.tick_counter % 20 < 10:
                 pygame.draw.ellipse(self.display, col, (
                     self.x - self.size / 2, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
@@ -212,6 +212,38 @@ class Ghost:
                 pygame.draw.ellipse(self.display, col, (
                     self.x, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
 
+        def draw_eyes(move_dir):
+            eye_width = self.size / 3
+            eye_height = eye_width * 3 / 2
+            pupil_diam = eye_width * 3 / 4
+            eye_separation = self.size * 0.1
+            y_pos = self.y - eye_height / 2 + self.offset
+
+            x_off = 0
+            y_off = 0
+            if move_dir == self.DIR["RIGHT"]:
+                x_off = 1
+            elif move_dir == self.DIR["LEFT"]:
+                x_off = -1
+            elif move_dir == self.DIR["UP"]:
+                y_off = -1
+            elif move_dir == self.DIR["DOWN"]:
+                y_off = 1
+
+            # eye whites
+            pygame.draw.ellipse(self.display, (255, 255, 255),
+                                (self.x - eye_width - (eye_separation / 2) + x_off, y_pos + y_off,
+                                 eye_width, eye_height))
+            pygame.draw.ellipse(self.display, (255, 255, 255),
+                                (self.x + (eye_separation / 2) + x_off, y_pos + y_off,
+                                 eye_width, eye_height))
+
+            # eye pupils
+            pygame.draw.circle(self.display, (0, 0, 0), (round(self.x - eye_width / 2 - eye_separation / 2 + x_off * 2),
+                               round(y_pos + eye_height / 2 + y_off * 2)), round(pupil_diam / 2))
+            pygame.draw.circle(self.display, (0, 0, 0), (round(self.x + eye_width / 2 + eye_separation / 2 + x_off * 2),
+                               round(y_pos + eye_height / 2 + y_off * 2)), round(pupil_diam / 2))
+
         if self.here:
             if self.blue and self.player.powered_up:
                 # blink blue and white in the last 2 seconds of power up time
@@ -223,6 +255,7 @@ class Ghost:
             else:
                 color = self.base_color
             draw_body(color)
+            draw_eyes(self.move_dir)
 
     def collide(self):
         dist_x = abs(self.x - self.player.x)
