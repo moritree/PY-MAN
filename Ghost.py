@@ -52,7 +52,7 @@ class Ghost:
         self.offset = main.offset
         self.size = 18
         self.base_color = color
-        self.step_len = self.block_size / 17   # normal movement speed
+        self.step_len = self.block_size / 17  # normal movement speed
         self.slow_step = self.block_size / 19  # movement speed when turned blue
 
         # Movement directions:
@@ -99,31 +99,27 @@ class Ghost:
                         wall = True
                     elif my_row == player_row:
                         if my_col > player_col:
-                            # player is LEFT from this ghost
-                            player_dir = 2
+                            player_dir = self.DIR["LEFT"]
                             for i in range(0, my_col - player_col):
                                 if self.maze.maze_array[my_row][i + player_col] == 1:
                                     wall = True
                         elif player_col == my_col:
                             wall = True
                         else:
-                            # player is RIGHT from this ghost
-                            player_dir = 0
+                            player_dir = self.DIR["RIGHT"]
                             for i in range(0, player_col - my_col):
                                 if self.maze.maze_array[my_row][i + my_col] == 1:
                                     wall = True
                     elif my_col == player_col:
                         if my_row > player_row:
-                            # player is UP from this ghost
-                            player_dir = 3
+                            player_dir = self.DIR["UP"]
                             for i in range(0, my_row - player_row):
                                 if self.maze.maze_array[i + player_row][my_col] == 1:
                                     wall = True
                         elif player_row == my_row:
                             wall = True
                         else:
-                            # player is DOWN from this ghost
-                            player_dir = 1
+                            player_dir = self.DIR["DOWN"]
                             for i in range(0, player_row - my_row):
                                 if self.maze.maze_array[i + my_row][my_col] == 1:
                                     wall = True
@@ -138,10 +134,10 @@ class Ghost:
                     if self.blue:
                         if self.look_dir == player_dir or not self.maze.can_move(self, self.look_dir):
                             self.look_dir = random.choice([left_turn(left_turn(player_dir)),
-                                                          left_turn(player_dir), right_turn(player_dir)])
+                                                           left_turn(player_dir), right_turn(player_dir)])
                     # Chase the player if not in any danger
                     else:
-                        if self.maze.can_move(self, player_col):
+                        if self.maze.can_move(self, player_dir):
                             self.look_dir = player_dir
 
                 # if player not visible, pick a random movement direction
@@ -157,7 +153,7 @@ class Ghost:
                     elif not (self.maze.can_move(self, self.move_dir)) \
                             and not (self.maze.can_move(self, left_turn(self.move_dir))) \
                             and not (self.maze.can_move(self, right_turn(self.move_dir))):
-                            self.move_dir = left_turn(left_turn(self.move_dir))
+                        self.move_dir = left_turn(left_turn(self.move_dir))
 
                 # do movement
                 if self.move_dir == self.DIR["UP"] and self.maze.can_move(self, self.DIR["UP"]):
@@ -196,6 +192,26 @@ class Ghost:
             self.timer += 1
 
     def draw(self):
+        def draw_body(col):
+            pygame.draw.ellipse(self.display, col, (self.x - self.size / 2, self.y + self.offset - self.size / 2,
+                                                    self.size, self.size * 0.9))
+            pygame.draw.rect(self.display, col, (self.x - self.size / 2, self.y + self.offset,
+                                                 self.size, self.size / 4))
+
+            # wobbles
+            if 0 < self.main.tick_counter % 20 < 10:
+                pygame.draw.ellipse(self.display, col, (
+                    self.x - self.size / 2, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
+                pygame.draw.ellipse(self.display, col, (
+                    self.x - self.size / 6, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
+                pygame.draw.ellipse(self.display, col, (
+                self.x + self.size / 6, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
+            else:
+                pygame.draw.ellipse(self.display, col, (
+                    self.x - self.size / 6 * 2, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
+                pygame.draw.ellipse(self.display, col, (
+                    self.x, self.y + self.size / 6 + self.offset - 1, self.size / 3, self.size / 3))
+
         if self.here:
             if self.blue and self.player.powered_up:
                 # blink blue and white in the last 2 seconds of power up time
@@ -206,15 +222,13 @@ class Ghost:
                     color = (50, 50, 200)  # dark blue
             else:
                 color = self.base_color
-
-            pygame.draw.rect(self.display, color, (self.x - self.size / 2, self.y - self.size / 2 + self.offset,
-                                                   self.size, self.size))
+            draw_body(color)
 
     def collide(self):
         dist_x = abs(self.x - self.player.x)
         dist_y = abs(self.y - self.player.y)
 
-        touch_distance = self.size/2 + self.player.size/2
+        touch_distance = self.size / 2 + self.player.size / 2
 
         if dist_x < touch_distance and dist_y < touch_distance and self.here:
             if self.blue and self.player.powered_up:
@@ -224,4 +238,3 @@ class Ghost:
                 self.blue = False
             else:
                 self.main.game_state = "lose"
-
