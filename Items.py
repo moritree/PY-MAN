@@ -30,7 +30,7 @@ class ItemFactory:
                         if item.x_coord == i and item.y_coord == j:
                             flag = True
                     if not flag:
-                        coin = Coin(i, j, self.block_size, self.display)
+                        coin = Coin(i, j, self.block_size, self.display, self.main)
 
     def draw_all(self):
         for power_up in PowerUp.instances:
@@ -49,7 +49,7 @@ class Coin:
     instances = []
     coin_size = 6
 
-    def __init__(self, x, y, block_size, display):
+    def __init__(self, x, y, block_size, display, main):
         Coin.instances.append(self)
 
         self.display = display
@@ -57,6 +57,7 @@ class Coin:
         self.y = y * block_size + block_size / 2
         self.offset = block_size*2
 
+        main.total_coins += 1
         self.here = True
 
     def draw(self):
@@ -72,6 +73,7 @@ class Coin:
         if dist_x < self.coin_size and dist_y < self.coin_size and self.here:
             self.here = False
             main.coins += 1
+            main.score += 1
 
 
 class PowerUp:

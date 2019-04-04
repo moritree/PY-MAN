@@ -17,7 +17,9 @@ class Main:
         self.fps_clock = pygame.time.Clock()
         self.tick_counter = 1
 
+        self.score = 0
         self.coins = 0
+        self.total_coins = 0
         self.running = True
 
         self.game_state = "run"
@@ -80,13 +82,20 @@ class Main:
         factory.setup()
 
         # spawn ghosts
-        ghost1 = Ghost.Ghost(maze, display_surf, player, self, 8, 9, (255, 80, 80), [2, 16])
-        ghost2 = Ghost.Ghost(maze, display_surf, player, self, 9, 9, (255, 100, 150), [2, 2])
-        ghost3 = Ghost.Ghost(maze, display_surf, player, self, 10, 9, (100, 255, 255), [16, 16])
-        ghost4 = Ghost.Ghost(maze, display_surf, player, self, 9, 7, (255, 200, 000), [16, 2])
+        blinky = Ghost.Ghost(maze, display_surf, player, self, 9, 7, (255, 80, 80), [16, 2], "shadow")
+        pinky = Ghost.Ghost(maze, display_surf, player, self, 8, 9, (255, 100, 150), [2, 2], "speedy")
+        inky = Ghost.Ghost(maze, display_surf, player, self, 9, 9, (100, 255, 255), [16, 16], "bashful")
+        clyde = Ghost.Ghost(maze, display_surf, player, self, 10, 9, (255, 200, 000), [2, 16], "pokey")
 
+        blinky.mode = "normal"
+        pinky.mode = "normal"
         while self.running:
             if self.game_state == "run":
+                if inky.mode != "normal" and self.coins > 30:
+                    inky.mode = "normal"
+                if clyde.mode != "normal" and self.coins > len(Items.Coin.instances) / 3:
+                    clyde.mode = "normal"
+
                 self.events(player)
                 self.loop(maze, player, factory)
                 self.draw(display_surf, maze, player, factory)

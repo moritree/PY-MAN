@@ -41,7 +41,7 @@ def left_turn(facing):
 class Ghost:
     instances = []
 
-    def __init__(self, maze, display, player, main, x, y, color, scatter_coord):
+    def __init__(self, maze, display, player, main, x, y, color, scatter_coord, personality):
         # Objects
         self.display = display
         self.player = player
@@ -55,8 +55,10 @@ class Ghost:
         self.base_color = color
         self.step_len = self.block_size / 17  # normal movement speed
         self.slow_step = self.block_size / 20  # movement speed when turned blue
+        self.personality = personality
         self.scatter_time = 7
         self.chase_time = 20
+        self.mode = "house"
 
         # Movement
         self.scatter_coord = scatter_coord
@@ -106,16 +108,17 @@ class Ghost:
                     return_dir = right_turn(facing)
             return return_dir
 
-        if self.here:
+        step = self.step_len
+        if self.timer >= self.player.power_time * self.main.fps:
+            self.blue = False
+        elif self.blue:
+            self.timer += 1
+            step = self.slow_step
+
+        # normal play - scatter, chase, and frightened behaviours
+        if self.mode == "normal":
             self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
                                 int((self.y + self.block_size / 2) / self.block_size)]
-
-            step = self.step_len
-            if self.timer >= self.player.power_time * self.main.fps:
-                self.blue = False
-            elif self.blue:
-                self.timer += 1
-                step = self.slow_step
 
             # only try changing direction if within bounds of maze array
             if self.block_size < self.x < self.main.display_width - self.block_size:
@@ -214,11 +217,6 @@ class Ghost:
                     self.x += step * self.COORD_DIR[self.move_dir][0]
                     self.y += step * self.COORD_DIR[self.move_dir][1]
 
-                    # if self.move_dir == 0 or 2:
-                    #     self.maze.center(self, "y", self.y)
-                    # else:
-                    #     self.maze.center(self, "x", self.x)
-
             # if outside maze, keep moving forwards until wrapped to the other side of the screen
             else:
                 if self.move_dir == 2:  # moving left
@@ -234,13 +232,25 @@ class Ghost:
                     self.x = -self.size
 
             self.turn_timer += 1
+
+        # ghost stays inside the house
+        elif self.mode == "house":
+            if self.look_dir == self.DIR["DOWN"] or self.look_dir == self.DIR["UP"]:
+                self.look_dir = random.choice([self.DIR["LEFT"], self.DIR["RIGHT"]])
+                self.move_dir = self.look_dir
+            if not (self.maze.can_move(self, self.move_dir)):
+                self.look_dir = left_turn(left_turn(self.move_dir))
+                self.move_dir = self.look_dir
+            self.x += step * self.COORD_DIR[self.move_dir][0]
+
         # re-spawn if time has passed
-        elif self.timer >= self.main.fps * self.respawn_time:
-            self.x = 10 * self.block_size - self.block_size / 2
-            self.y = 10 * self.block_size - self.block_size / 2
-            self.here = True
-        else:
-            self.timer += 1
+        elif self.mode == "dead":
+            if self.timer >= self.main.fps * self.respawn_time:
+                self.x = 10 * self.block_size - self.block_size / 2
+                self.y = 10 * self.block_size - self.block_size / 2
+                self.mode = "normal"
+            else:
+                self.timer += 1
 
     def draw(self):
         def draw_body(col):
@@ -295,7 +305,7 @@ class Ghost:
             pygame.draw.circle(self.display, (0, 0, 0), (round(self.x + eye_width / 2 + eye_separation / 2 + x_off * 2),
                                round(y_pos + eye_height / 2 + y_off * 2)), round(pupil_diam / 2))
 
-        if self.here:
+        if self.mode != "dead":
             if self.blue and self.player.powered_up:
                 # blink blue and white in the last 2 seconds of power up time
                 if 0 < self.timer % 40 < 20 \
@@ -314,11 +324,11 @@ class Ghost:
 
         touch_distance = self.size / 2
 
-        if dist_x < touch_distance and dist_y < touch_distance and self.here:
+        if dist_x < touch_distance and dist_y < touch_distance and self.mode != "dead":
             if self.blue and self.player.powered_up:
                 self.timer = 0
-                self.main.coins += 10
+                self.main.score += 10
                 self.blue = False
-                self.here = False
+                self.mode = "dead"
             else:
                 self.main.game_state = "lose"

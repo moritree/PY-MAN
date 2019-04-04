@@ -10,9 +10,8 @@ class PacMan:
         self.main = main
 
         # Constants
-        self.size = 22
+        self.size = 26
         self.step_len = main.block_size / 15
-        self.powered_step = main.block_size / 13
         self.block_size = self.main.block_size
         self.offset = self.main.offset
 
@@ -22,6 +21,7 @@ class PacMan:
         self.move_dir = None
 
         # Location in pixels
+        self.array_coord = [x, y]
         self.x = x * main.block_size + main.block_size / 2
         self.y = y * main.block_size + main.block_size / 2
 
@@ -40,9 +40,10 @@ class PacMan:
 
     def move(self):
         step = self.step_len
+        self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
+                            int((self.y + self.block_size / 2) / self.block_size)]
 
         if self.powered_up:
-            step = self.powered_step
             if self.timer >= self.power_time * self.main.fps:
                 self.powered_up = False
                 Ghost.end_blue()
@@ -71,6 +72,7 @@ class PacMan:
             if self.move_dir == self.DIR["RIGHT"] and self.maze.can_move(self, self.DIR["RIGHT"]):
                 self.x += step
                 self.maze.center(self, "y", self.y)
+
         # if outside maze, keep moving forwards until wrapped to the other side of the screen
         else:
             if self.move_dir == self.DIR["LEFT"]:
