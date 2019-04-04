@@ -1,6 +1,6 @@
 import pygame
 import random
-from enum import Enum
+import math
 
 
 def draw_ghosts():
@@ -20,8 +20,9 @@ def move_all():
 
 def turn_blue():
     for ghost in Ghost.instances:
-        ghost.blue = True
-        ghost.timer = 0
+        if ghost.here:
+            ghost.blue = True
+            ghost.timer = 0
 
 
 def end_blue():
@@ -40,7 +41,7 @@ def left_turn(facing):
 class Ghost:
     instances = []
 
-    def __init__(self, maze, display, player, main, x, y, color):
+    def __init__(self, maze, display, player, main, x, y, color, scatter_coord):
         # Objects
         self.display = display
         self.player = player
@@ -53,27 +54,62 @@ class Ghost:
         self.size = 24
         self.base_color = color
         self.step_len = self.block_size / 17  # normal movement speed
-        self.slow_step = self.block_size / 19  # movement speed when turned blue
+        self.slow_step = self.block_size / 20  # movement speed when turned blue
+        self.scatter_time = 7
+        self.chase_time = 20
 
-        # Movement directions:
+        # Movement
+        self.scatter_coord = scatter_coord
         self.DIR = {"RIGHT": 0, "DOWN": 1, "LEFT": 2, "UP": 3}
+        self.COORD_DIR = {0: [1, 0], 1: [0, 1], 2: [-1, 0], 3: [0, -1]}
         self.look_dir = 3
         self.move_dir = 3
 
-        # Location in pixels
-        self.x = x * self.block_size - self.block_size / 2
-        self.y = y * self.block_size - self.block_size / 2
+        # Location
+        self.array_coord = [x, y]
+        self.x = x * self.block_size + self.block_size / 2  # px
+        self.y = y * self.block_size + self.block_size / 2  # px
 
         # Setup vars
         self.here = True
         self.blue = False
         self.timer = 0
         self.respawn_time = 3
+        self.turn_timer = 0
 
         Ghost.instances.append(self)
 
     def move(self):
+        def find_distance(a_pos, b_pos):
+            a = pow(abs(a_pos[0] - b_pos[0]), 2)
+            b = pow(abs(a_pos[1] - b_pos[1]), 2)
+            return math.sqrt(a + b)
+
+        def find_closest(facing, target_pos):
+            return_dir = facing
+            next_pos = [self.array_coord[0] + self.COORD_DIR[facing][0],
+                        self.array_coord[1] + self.COORD_DIR[facing][1]]
+            dir_min = find_distance(next_pos, target_pos)
+            # check left turn
+            if self.maze.can_move(self, left_turn(facing)):
+                next_pos = [self.array_coord[0] + self.COORD_DIR[left_turn(facing)][0],
+                            self.array_coord[1] + self.COORD_DIR[left_turn(facing)][1]]
+                next_dir = find_distance(next_pos, target_pos)
+                if next_dir < dir_min:
+                    return_dir = left_turn(facing)
+            # check right turn
+            if self.maze.can_move(self, right_turn(facing)):
+                next_pos = [self.array_coord[0] + self.COORD_DIR[right_turn(facing)][0],
+                            self.array_coord[1] + self.COORD_DIR[right_turn(facing)][1]]
+                next_dir = find_distance(next_pos, target_pos)
+                if next_dir < dir_min:
+                    return_dir = right_turn(facing)
+            return return_dir
+
         if self.here:
+            self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
+                                int((self.y + self.block_size / 2) / self.block_size)]
+
             step = self.step_len
             if self.timer >= self.player.power_time * self.main.fps:
                 self.blue = False
@@ -89,85 +125,99 @@ class Ghost:
                 player_col = int(self.player.x / self.block_size)
                 player_dir = 0
 
-                # Check whether the player is visible from this ghost's perspective
-                # If they are on the same row or column, check all tiles in between
-                # If there are no walls, the ghost can see the player
-                see_player = False
-                if my_row == player_row or my_col == player_col:
-                    wall = False  # flag for whether there is an obstruction between ghost and player
-                    if my_col == player_col and my_row == player_row:
-                        wall = True
-                    elif my_row == player_row:
-                        if my_col > player_col:
-                            player_dir = self.DIR["LEFT"]
-                            for i in range(0, my_col - player_col):
-                                if self.maze.maze_array[my_row][i + player_col] == 1:
-                                    wall = True
-                        elif player_col == my_col:
+                # FRIGHTENED MODE
+                if self.blue:
+                    # Check whether the player is visible from this ghost's perspective
+                    # If they are on the same row or column, check all tiles in between
+                    # If there are no walls, the ghost can see the player
+                    see_player = False
+                    if my_row == player_row or my_col == player_col:
+                        wall = False  # flag for whether there is an obstruction between ghost and player
+                        if my_col == player_col and my_row == player_row:
                             wall = True
-                        else:
-                            player_dir = self.DIR["RIGHT"]
-                            for i in range(0, player_col - my_col):
-                                if self.maze.maze_array[my_row][i + my_col] == 1:
-                                    wall = True
-                    elif my_col == player_col:
-                        if my_row > player_row:
-                            player_dir = self.DIR["UP"]
-                            for i in range(0, my_row - player_row):
-                                if self.maze.maze_array[i + player_row][my_col] == 1:
-                                    wall = True
-                        elif player_row == my_row:
-                            wall = True
-                        else:
-                            player_dir = self.DIR["DOWN"]
-                            for i in range(0, player_row - my_row):
-                                if self.maze.maze_array[i + my_row][my_col] == 1:
-                                    wall = True
-                    if not wall:
-                        see_player = True
+                        elif my_row == player_row:
+                            if my_col > player_col:
+                                player_dir = self.DIR["LEFT"]
+                                for i in range(0, my_col - player_col):
+                                    if self.maze.maze_array[my_row][i + player_col] == 1:
+                                        wall = True
+                            elif player_col == my_col:
+                                wall = True
+                            else:
+                                player_dir = self.DIR["RIGHT"]
+                                for i in range(0, player_col - my_col):
+                                    if self.maze.maze_array[my_row][i + my_col] == 1:
+                                        wall = True
+                        elif my_col == player_col:
+                            if my_row > player_row:
+                                player_dir = self.DIR["UP"]
+                                for i in range(0, my_row - player_row):
+                                    if self.maze.maze_array[i + player_row][my_col] == 1:
+                                        wall = True
+                            elif player_row == my_row:
+                                wall = True
+                            else:
+                                player_dir = self.DIR["DOWN"]
+                                for i in range(0, player_row - my_row):
+                                    if self.maze.maze_array[i + my_row][my_col] == 1:
+                                        wall = True
+                        if not wall:
+                            see_player = True
 
-                # If the player is visible, either chase or run away
-                if see_player:
-                    # Run away from the player if player is powered up
+                    # Run away from the player
                     # If it is able to continue in the direction it is facing it will
                     # do so, so long as it does not go towards the player
-                    if self.blue:
-                        if self.look_dir == player_dir or not self.maze.can_move(self, self.look_dir):
-                            self.look_dir = random.choice([left_turn(left_turn(player_dir)),
-                                                           left_turn(player_dir), right_turn(player_dir)])
-                    # Chase the player if not in any danger
-                    else:
-                        if self.maze.can_move(self, player_dir):
-                            self.look_dir = player_dir
+                    if self.turn_timer > 1:
+                        if see_player:
+                            if self.look_dir == player_dir or not self.maze.can_move(self, self.look_dir):
+                                self.look_dir = random.choice([left_turn(left_turn(player_dir)),
+                                                               left_turn(player_dir), right_turn(player_dir)])
+                                self.turn_timer = 0
+                        # if player not visible, pick a random movement direction
+                        else:
+                            self.look_dir = random.choice([self.move_dir,
+                                                           left_turn(self.move_dir), right_turn(self.move_dir)])
+                            self.turn_timer = 0
 
-                # if player not visible, pick a random movement direction
-                # forwards, left, or right
+                if (self.main.tick_counter / 60) / 7 < 1:
+                    # scatter mode
+                    target_coord = self.scatter_coord
                 else:
-                    self.look_dir = random.choice([self.move_dir, left_turn(self.move_dir), right_turn(self.move_dir)])
+                    # chase mode
+                    target_coord = self.player.array_coord
+
+                # move towards target
+                # only try movement at intersection
+                if step < self.x % self.block_size < self.block_size - step \
+                        and step < self.y % self.block_size < self.block_size - step and self.turn_timer > 1:
+                    if self.maze.can_move(self, left_turn(self.look_dir)) \
+                            or self.maze.can_move(self, right_turn(self.look_dir)):
+                        self.look_dir = find_closest(self.look_dir, target_coord)
+                        self.turn_timer = 0
+                    if not self.maze.can_move(self, self.look_dir):
+                        self.look_dir = random.choice([left_turn(self.move_dir), right_turn(self.move_dir)])
+                        self.turn_timer = 0
 
                 # change move direction to match look direction if possible
                 if self.look_dir != self.move_dir:
                     if self.maze.can_move(self, self.look_dir):
                         self.move_dir = self.look_dir
                     # if in a dead end, flip direction
-                    elif not (self.maze.can_move(self, self.move_dir)) \
+                    if not (self.maze.can_move(self, self.move_dir)) \
                             and not (self.maze.can_move(self, left_turn(self.move_dir))) \
                             and not (self.maze.can_move(self, right_turn(self.move_dir))):
-                        self.move_dir = left_turn(left_turn(self.move_dir))
+                        self.look_dir = left_turn(left_turn(self.move_dir))
+                        self.move_dir = self.look_dir
 
                 # do movement
-                if self.move_dir == self.DIR["UP"] and self.maze.can_move(self, self.DIR["UP"]):
-                    self.y -= step
-                    self.maze.center(self, "x", self.x)
-                if self.move_dir == self.DIR["DOWN"] and self.maze.can_move(self, self.DIR["DOWN"]):
-                    self.y += step
-                    self.maze.center(self, "x", self.x)
-                if self.move_dir == self.DIR["LEFT"] and self.maze.can_move(self, self.DIR["LEFT"]):
-                    self.x -= step
-                    self.maze.center(self, "y", self.y)
-                if self.move_dir == self.DIR["RIGHT"] and self.maze.can_move(self, self.DIR["RIGHT"]):
-                    self.x += step
-                    self.maze.center(self, "y", self.y)
+                if self.maze.can_move(self, self.move_dir):
+                    self.x += step * self.COORD_DIR[self.move_dir][0]
+                    self.y += step * self.COORD_DIR[self.move_dir][1]
+
+                    # if self.move_dir == 0 or 2:
+                    #     self.maze.center(self, "y", self.y)
+                    # else:
+                    #     self.maze.center(self, "x", self.x)
 
             # if outside maze, keep moving forwards until wrapped to the other side of the screen
             else:
@@ -183,6 +233,7 @@ class Ghost:
                 if self.x > self.size + self.main.display_width:
                     self.x = -self.size
 
+            self.turn_timer += 1
         # re-spawn if time has passed
         elif self.timer >= self.main.fps * self.respawn_time:
             self.x = 10 * self.block_size - self.block_size / 2
@@ -261,13 +312,13 @@ class Ghost:
         dist_x = abs(self.x - self.player.x)
         dist_y = abs(self.y - self.player.y)
 
-        touch_distance = self.size / 2 + self.player.size / 2
+        touch_distance = self.size / 2
 
         if dist_x < touch_distance and dist_y < touch_distance and self.here:
             if self.blue and self.player.powered_up:
                 self.timer = 0
-                self.here = False
                 self.main.coins += 10
                 self.blue = False
+                self.here = False
             else:
                 self.main.game_state = "lose"

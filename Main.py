@@ -80,10 +80,10 @@ class Main:
         factory.setup()
 
         # spawn ghosts
-        ghost1 = Ghost.Ghost(maze, display_surf, player, self, 9, 10, (255, 80, 80))
-        ghost2 = Ghost.Ghost(maze, display_surf, player, self, 10, 10, (255, 100, 150))
-        ghost3 = Ghost.Ghost(maze, display_surf, player, self, 11, 10, (100, 255, 255))
-        ghost4 = Ghost.Ghost(maze, display_surf, player, self, 10, 8, (255, 200, 000))
+        ghost1 = Ghost.Ghost(maze, display_surf, player, self, 8, 9, (255, 80, 80), [2, 16])
+        ghost2 = Ghost.Ghost(maze, display_surf, player, self, 9, 9, (255, 100, 150), [2, 2])
+        ghost3 = Ghost.Ghost(maze, display_surf, player, self, 10, 9, (100, 255, 255), [16, 16])
+        ghost4 = Ghost.Ghost(maze, display_surf, player, self, 9, 7, (255, 200, 000), [16, 2])
 
         while self.running:
             if self.game_state == "run":
