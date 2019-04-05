@@ -1,7 +1,7 @@
 import Items
 import pygame
 import random
-from operator import add
+from operator import *
 import math
 
 
@@ -50,10 +50,14 @@ class GhostFactory:
         self.main = main
         self.maze = maze
 
-        self.blinky = Ghost(self.maze, self.display, self.player, self.main, 9, 7, (255, 80, 80), [16, 2], "shadow")
-        self.pinky = Ghost(self.maze, self.display, self.player, self.main, 8, 9, (255, 100, 150), [2, 2], "speedy")
-        self.inky = Ghost(self.maze, self.display, self.player, self.main, 9, 9, (100, 255, 255), [16, 16], "bashful")
-        self.clyde = Ghost(self.maze, self.display, self.player, self.main, 10, 9, (255, 200, 000), [2, 16], "pokey")
+        self.blinky = Ghost(self.maze, self.display, self.player, self.main,
+                            9, 7, (255, 80, 80), [16, 2], "shadow", self)
+        self.pinky = Ghost(self.maze, self.display, self.player, self.main,
+                           8, 9, (255, 100, 150), [2, 2], "speedy", self)
+        self.inky = Ghost(self.maze, self.display, self.player, self.main,
+                          9, 9, (100, 255, 255), [16, 16], "bashful", self)
+        self.clyde = Ghost(self.maze, self.display, self.player, self.main,
+                           10, 9, (255, 200, 000), [2, 16], "pokey", self)
 
         self.blinky.mode = "normal"
         self.pinky.mode = "normal"
@@ -70,16 +74,24 @@ class GhostFactory:
             self.clyde.mode = "normal"
             self.clyde_flag = True
 
+    def inky_target(self):
+        target_coord = \
+            [self.player.array_coord[0] + self.player.COORD_DIR[self.player.move_dir][0] * 2,
+             self.player.array_coord[1] + self.player.COORD_DIR[self.player.move_dir][1] * 2]
+        vect = list(map(sub, target_coord, self.blinky.array_coord))
+        return list(map(add, target_coord, vect))
+
 
 class Ghost:
     instances = []
 
-    def __init__(self, maze, display, player, main, x, y, color, scatter_coord, personality):
+    def __init__(self, maze, display, player, main, x, y, color, scatter_coord, personality, factory):
         # OBJECTS
         self.display = display
         self.player = player
         self.main = main
         self.maze = maze
+        self.factory = factory
 
         # CONSTANTS
         self.block_size = main.block_size
@@ -145,6 +157,7 @@ class Ghost:
                     return_dir = right_turn(facing)
             return return_dir
 
+        # Set step length based on current state
         step = self.step_len
         if self.blue:
             if self.blue_timer >= self.player.power_time * self.main.fps:
@@ -155,8 +168,6 @@ class Ghost:
         if self.mode == "dead":
             step = self.step_len * 2
 
-        # NORMAL MODE
-        # scatter, chase, and frightened behaviours
         if self.mode == "normal" or self.mode == "dead":
             self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
                                 int((self.y + self.block_size / 2) / self.block_size)]
@@ -239,6 +250,11 @@ class Ghost:
                             target_coord = \
                                 [self.player.array_coord[0] + self.player.COORD_DIR[self.player.move_dir][0] * 4,
                                  self.player.array_coord[1] + self.player.COORD_DIR[self.player.move_dir][1] * 4]
+                        if self.personality == "pokey" and find_distance(self.array_coord, self.player.array_coord) < 8:
+                            target_coord = self.scatter_coord
+                        if self.personality == "bashful":
+                            target_coord = self.factory.inky_target()
+
                 # if dead, move back to ghost house
                 elif self.mode == "dead":
                     target_coord = [9, 9]
@@ -290,8 +306,7 @@ class Ghost:
 
             self.turn_timer += 1
 
-        # HOUSE MODE
-        # ghost stays in the house and paces left and right
+        # Ghost stays in the house and paces left and right
         elif self.mode == "house":
             if self.look_dir == self.DIR["DOWN"] or self.look_dir == self.DIR["UP"]:
                 self.look_dir = random.choice([self.DIR["LEFT"], self.DIR["RIGHT"]])
