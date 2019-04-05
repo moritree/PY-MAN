@@ -100,6 +100,7 @@ class Ghost:
         self.base_color = color
         self.step_len = self.block_size / 16  # normal movement speed
         self.slow_step = self.block_size / 24  # movement speed when turned blue
+        self.step = self.step_len
         self.personality = personality
         self.scatter_time = 7
         self.chase_time = 20
@@ -166,7 +167,8 @@ class Ghost:
                 self.blue_timer += 1
                 step = self.slow_step
         if self.mode == "dead":
-            step = self.step_len * 2
+            self.step = self.step_len * 2
+            step = self.step
 
         if self.mode == "normal" or self.mode == "dead":
             self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
@@ -220,7 +222,7 @@ class Ghost:
                             see_player = True
 
                     # Only attempt turn if more than 1 tick since last turn
-                    if self.turn_timer > 1:
+                    if self.turn_timer > 2:
                         # Run away from the player if it is visible
                         # If it is able to continue in the direction it is facing it will
                         # do so, so long as it does not go towards the player
