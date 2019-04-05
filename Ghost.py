@@ -1,6 +1,7 @@
 import Items
 import pygame
 import random
+from operator import add
 import math
 
 
@@ -151,10 +152,12 @@ class Ghost:
             else:
                 self.blue_timer += 1
                 step = self.slow_step
+        if self.mode == "dead":
+            step = self.step_len * 2
 
         # NORMAL MODE
         # scatter, chase, and frightened behaviours
-        if self.mode == "normal":
+        if self.mode == "normal" or self.mode == "dead":
             self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
                                 int((self.y + self.block_size / 2) / self.block_size)]
 
@@ -222,13 +225,23 @@ class Ghost:
                             self.turn_timer = 0
 
                 # set target position based on current behaviour
+                if self.mode == "normal":
+                    if self.array_coord == [9, 9]:
+                        target_coord = [9, 7]
+                    # SCATTER MODE
+                    elif (self.main.tick_counter / 60) / 7 < 1:
+                        target_coord = self.scatter_coord
 
-                # SCATTER MODE
-                if (self.main.tick_counter / 60) / 7 < 1:
-                    target_coord = self.scatter_coord
-                # CHASE MODE
-                else:
-                    target_coord = self.player.array_coord
+                    # CHASE MODE
+                    else:
+                        target_coord = self.player.array_coord
+                        if self.personality == "speedy":
+                            target_coord = \
+                                [self.player.array_coord[0] + self.player.COORD_DIR[self.player.move_dir][0] * 4,
+                                 self.player.array_coord[1] + self.player.COORD_DIR[self.player.move_dir][1] * 4]
+                # if dead, move back to ghost house
+                elif self.mode == "dead":
+                    target_coord = [9, 9]
 
                 # move towards target, only attempt a turn at an intersection
                 if step < self.x % self.block_size < self.block_size - step \
@@ -271,6 +284,10 @@ class Ghost:
                 if self.x > self.size + self.main.display_width:
                     self.x = -self.size
 
+            # respawn if way found back to house
+            if self.mode == "dead" and self.array_coord == [9, 9]:
+                self.mode = "normal"
+
             self.turn_timer += 1
 
         # HOUSE MODE
@@ -283,17 +300,6 @@ class Ghost:
                 self.look_dir = left_turn(left_turn(self.move_dir))
                 self.move_dir = self.look_dir
             self.x += step * self.COORD_DIR[self.move_dir][0]
-
-        # DEAD MODE
-        elif self.mode == "dead":
-            # Re-spawn if time has passed
-            if self.respawn_timer >= self.main.fps * self.respawn_time:
-                self.x = 10 * self.block_size - self.block_size / 2
-                self.y = 10 * self.block_size - self.block_size / 2
-                self.mode = "normal"
-            # Eyes use Dij
-            else:
-                self.respawn_timer += 1
 
     def draw(self):
         def draw_body(col):
@@ -361,6 +367,9 @@ class Ghost:
             draw_body(color)
             draw_eyes(self.move_dir)
 
+        else:
+            draw_eyes(self.move_dir)
+
     def collide(self):
         dist_x = abs(self.x - self.player.x)
         dist_y = abs(self.y - self.player.y)
@@ -373,7 +382,5 @@ class Ghost:
                 self.blue_timer = 0
                 self.respawn_timer = 0
                 self.main.score += 10
-                self.x = 9 * self.block_size + self.block_size / 2
-                self.y = 9 * self.block_size + self.block_size / 2
             elif not self.blue:
                 self.main.game_state = "lose"

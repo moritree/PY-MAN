@@ -1,4 +1,5 @@
 import pygame
+from collections import defaultdict
 
 
 class Maze:
