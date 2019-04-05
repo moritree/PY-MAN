@@ -10,8 +10,12 @@ class Main:
     def __init__(self):
         self.block_size = 30
         self.offset = self.block_size * 2
-        self.display_width = 19 * self.block_size
-        self.display_height = self.display_width + 2*self.block_size
+
+        self.maze_width = 19
+        self.maze_height = 19
+
+        self.display_width = self.maze_width * self.block_size
+        self.display_height = self.maze_height * self.block_size + self.offset
 
         self.fps = 60
         self.fps_clock = pygame.time.Clock()
@@ -40,31 +44,24 @@ class Main:
                 exit()
         return
 
-    def loop(self, maze, player, factory):
+    def loop(self, player, item_factory, ghost_factory):
         if self.game_state == "run":
+            ghost_factory.activation()
             player.move()
-            factory.check_collisions()
+            item_factory.check_collisions()
             Ghost.move_all()
             Ghost.check_collisions()
 
-    def draw(self, display, maze, player, factory):
+    def draw(self, display, maze, player, item_factory):
         pygame.draw.rect(display, (0, 0, 0), (0, 0, self.display_width, self.display_height))
 
         maze.draw()
-        factory.draw_all()
+        item_factory.draw_all()
         player.draw()
         Ghost.draw_ghosts()
 
         game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
         game_font.render_to(display, (15, 15), "SCORE: " + str(self.coins), (255, 255, 255))
-
-    def win_condition(self):
-        flag = False
-        for coin in Items.Coin.instances:
-            if coin.here:
-                flag = True
-        if not flag:
-            self.game_state = "win"
 
     def run(self):
         # initialize
@@ -78,32 +75,30 @@ class Main:
         player = PacMan.PacMan(9, 11, display_surf, maze, self)
 
         # generate all coins and power ups
-        factory = Items.ItemFactory(maze, self.block_size, display_surf, player, self)
-        factory.setup()
+        item_factory = Items.ItemFactory(maze, self.block_size, display_surf, player, self)
+        item_factory.setup()
 
         # spawn ghosts
-        blinky = Ghost.Ghost(maze, display_surf, player, self, 9, 7, (255, 80, 80), [16, 2], "shadow")
-        pinky = Ghost.Ghost(maze, display_surf, player, self, 8, 9, (255, 100, 150), [2, 2], "speedy")
-        inky = Ghost.Ghost(maze, display_surf, player, self, 9, 9, (100, 255, 255), [16, 16], "bashful")
-        clyde = Ghost.Ghost(maze, display_surf, player, self, 10, 9, (255, 200, 000), [2, 16], "pokey")
+        ghost_factory = Ghost.GhostFactory(maze, display_surf, player, self)
 
-        blinky.mode = "normal"
-        pinky.mode = "normal"
+        # running game loop
         while self.running:
             if self.game_state == "run":
-                if inky.mode != "normal" and self.coins > 30:
-                    inky.mode = "normal"
-                if clyde.mode != "normal" and self.coins > len(Items.Coin.instances) / 3:
-                    clyde.mode = "normal"
 
+                # main game loop
                 self.events(player)
-                self.loop(maze, player, factory)
-                self.draw(display_surf, maze, player, factory)
+                self.loop(player, item_factory, ghost_factory)
+                self.draw(display_surf, maze, player, item_factory)
+
+                # check win condition
+                if self.coins >= self.total_coins:
+                    self.game_state = "win"
 
                 pygame.display.update()
                 self.fps_clock.tick(self.fps)
                 self.tick_counter += 1
 
+            # end game at win/lose
             elif self.game_state == "win":
                 self.running = False
             elif self.game_state == "lose":

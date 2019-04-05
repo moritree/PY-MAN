@@ -17,6 +17,7 @@ class PacMan:
 
         # Movement directions
         self.DIR = {"RIGHT": 0, "DOWN": 1, "LEFT": 2, "UP": 3}
+        self.COORD_DIR = {0: [1, 0], 1: [0, 1], 2: [-1, 0], 3: [0, -1]}
         self.look_dir = None
         self.move_dir = None
 
@@ -44,6 +45,7 @@ class PacMan:
                             int((self.y + self.block_size / 2) / self.block_size)]
 
         if self.powered_up:
+            # end powerup at end of timer
             if self.timer >= self.power_time * self.main.fps:
                 self.powered_up = False
                 Ghost.end_blue()
@@ -52,28 +54,19 @@ class PacMan:
             else:
                 self.timer += 1
 
-        # control only within bounds of maze array
+        # Can only change direction within the bounds of the maze
         if self.block_size < self.x < self.main.display_width - self.block_size:
-            # change movement direction to match look direction if possible
+            # Change movement direction to match look direction if possible
             if self.look_dir != self.move_dir:
                 if self.maze.can_move(self, self.look_dir):
                     self.move_dir = self.look_dir
 
-            # do movement
-            if self.move_dir == self.DIR["UP"] and self.maze.can_move(self, self.DIR["UP"]):
-                self.y -= step
-                self.maze.center(self, "x", self.x)
-            if self.move_dir == self.DIR["DOWN"] and self.maze.can_move(self, self.DIR["DOWN"]):
-                self.y += step
-                self.maze.center(self, "x", self.x)
-            if self.move_dir == self.DIR["LEFT"] and self.maze.can_move(self, "LEFT"):
-                self.x -= step
-                self.maze.center(self, "y", self.y)
-            if self.move_dir == self.DIR["RIGHT"] and self.maze.can_move(self, self.DIR["RIGHT"]):
-                self.x += step
-                self.maze.center(self, "y", self.y)
+            # Do movement
+            if self.maze.can_move(self, self.move_dir):
+                self.x += step * self.COORD_DIR[self.move_dir][0]
+                self.y += step * self.COORD_DIR[self.move_dir][1]
 
-        # if outside maze, keep moving forwards until wrapped to the other side of the screen
+        # If outside maze, keep moving forwards until wrapped to the other side of the screen
         else:
             if self.move_dir == self.DIR["LEFT"]:
                 self.x -= step
@@ -81,7 +74,7 @@ class PacMan:
             if self.move_dir == self.DIR["RIGHT"]:
                 self.x += step
                 self.maze.center(self, "y", self.y)
-            # screen wrap
+            # Screen wrap
             if self.x < -self.size:
                 self.x = self.main.display_width
             if self.x > self.size + self.main.display_width:

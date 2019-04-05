@@ -1,6 +1,15 @@
+import Items
 import pygame
 import random
 import math
+
+
+def right_turn(facing):
+    return abs((facing + 1) % 4)
+
+
+def left_turn(facing):
+    return abs((facing - 1) % 4)
 
 
 def draw_ghosts():
@@ -20,9 +29,9 @@ def move_all():
 
 def turn_blue():
     for ghost in Ghost.instances:
-        if ghost.here:
+        if ghost.mode != "dead":
             ghost.blue = True
-            ghost.timer = 0
+            ghost.blue_timer = 0
 
 
 def end_blue():
@@ -30,54 +39,81 @@ def end_blue():
         ghost.blue = False
 
 
-def right_turn(facing):
-    return abs((facing + 1) % 4)
+class GhostFactory:
+    def __init__(self, maze, display, player, main):
+        self.array = maze.maze_array
+        self.block_size = main.block_size
 
+        self.display = display
+        self.player = player
+        self.main = main
+        self.maze = maze
 
-def left_turn(facing):
-    return abs((facing - 1) % 4)
+        self.blinky = Ghost(self.maze, self.display, self.player, self.main, 9, 7, (255, 80, 80), [16, 2], "shadow")
+        self.pinky = Ghost(self.maze, self.display, self.player, self.main, 8, 9, (255, 100, 150), [2, 2], "speedy")
+        self.inky = Ghost(self.maze, self.display, self.player, self.main, 9, 9, (100, 255, 255), [16, 16], "bashful")
+        self.clyde = Ghost(self.maze, self.display, self.player, self.main, 10, 9, (255, 200, 000), [2, 16], "pokey")
+
+        self.blinky.mode = "normal"
+        self.pinky.mode = "normal"
+        self.inky_flag = False
+        self.clyde_flag = False
+
+    def activation(self):
+        # activate inky once 30 coins have been collected
+        if self.inky.mode != "normal" and self.main.coins > 30 and self.inky_flag == False:
+            self.inky.mode = "normal"
+            self.inky_flag = True
+        # activate clyde once 1/3 of total coins have been collected
+        if self.clyde.mode != "normal" and self.main.coins > len(Items.Coin.instances) / 3 and self.clyde_flag == False:
+            self.clyde.mode = "normal"
+            self.clyde_flag = True
 
 
 class Ghost:
     instances = []
 
     def __init__(self, maze, display, player, main, x, y, color, scatter_coord, personality):
-        # Objects
+        # OBJECTS
         self.display = display
         self.player = player
         self.main = main
         self.maze = maze
 
-        # Constants
+        # CONSTANTS
         self.block_size = main.block_size
         self.offset = main.offset
         self.size = 24
         self.base_color = color
-        self.step_len = self.block_size / 17  # normal movement speed
-        self.slow_step = self.block_size / 20  # movement speed when turned blue
+        self.step_len = self.block_size / 16  # normal movement speed
+        self.slow_step = self.block_size / 24  # movement speed when turned blue
         self.personality = personality
         self.scatter_time = 7
         self.chase_time = 20
-        self.mode = "house"
 
-        # Movement
+        # MOVEMENT
         self.scatter_coord = scatter_coord
         self.DIR = {"RIGHT": 0, "DOWN": 1, "LEFT": 2, "UP": 3}
         self.COORD_DIR = {0: [1, 0], 1: [0, 1], 2: [-1, 0], 3: [0, -1]}
         self.look_dir = 3
         self.move_dir = 3
 
-        # Location
+        # LOCATION
         self.array_coord = [x, y]
         self.x = x * self.block_size + self.block_size / 2  # px
         self.y = y * self.block_size + self.block_size / 2  # px
 
-        # Setup vars
-        self.here = True
+        # SETUP VARS
+        self.mode = "house"
         self.blue = False
-        self.timer = 0
         self.respawn_time = 3
+
+        # TIMERS
+        # Initialise multiple timers to avoid accidental collisions
         self.turn_timer = 0
+        self.respawn_timer = 0
+        self.timer = 0
+        self.blue_timer = 0
 
         Ghost.instances.append(self)
 
@@ -109,13 +145,15 @@ class Ghost:
             return return_dir
 
         step = self.step_len
-        if self.timer >= self.player.power_time * self.main.fps:
-            self.blue = False
-        elif self.blue:
-            self.timer += 1
-            step = self.slow_step
+        if self.blue:
+            if self.blue_timer >= self.player.power_time * self.main.fps:
+                self.blue = False
+            else:
+                self.blue_timer += 1
+                step = self.slow_step
 
-        # normal play - scatter, chase, and frightened behaviours
+        # NORMAL MODE
+        # scatter, chase, and frightened behaviours
         if self.mode == "normal":
             self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
                                 int((self.y + self.block_size / 2) / self.block_size)]
@@ -167,10 +205,11 @@ class Ghost:
                         if not wall:
                             see_player = True
 
-                    # Run away from the player
-                    # If it is able to continue in the direction it is facing it will
-                    # do so, so long as it does not go towards the player
+                    # Only attempt turn if more than 1 tick since last turn
                     if self.turn_timer > 1:
+                        # Run away from the player if it is visible
+                        # If it is able to continue in the direction it is facing it will
+                        # do so, so long as it does not go towards the player
                         if see_player:
                             if self.look_dir == player_dir or not self.maze.can_move(self, self.look_dir):
                                 self.look_dir = random.choice([left_turn(left_turn(player_dir)),
@@ -182,15 +221,16 @@ class Ghost:
                                                            left_turn(self.move_dir), right_turn(self.move_dir)])
                             self.turn_timer = 0
 
+                # set target position based on current behaviour
+
+                # SCATTER MODE
                 if (self.main.tick_counter / 60) / 7 < 1:
-                    # scatter mode
                     target_coord = self.scatter_coord
+                # CHASE MODE
                 else:
-                    # chase mode
                     target_coord = self.player.array_coord
 
-                # move towards target
-                # only try movement at intersection
+                # move towards target, only attempt a turn at an intersection
                 if step < self.x % self.block_size < self.block_size - step \
                         and step < self.y % self.block_size < self.block_size - step and self.turn_timer > 1:
                     if self.maze.can_move(self, left_turn(self.look_dir)) \
@@ -217,12 +257,12 @@ class Ghost:
                     self.x += step * self.COORD_DIR[self.move_dir][0]
                     self.y += step * self.COORD_DIR[self.move_dir][1]
 
-            # if outside maze, keep moving forwards until wrapped to the other side of the screen
+            # If outside maze, keep moving forwards until wrapped to the other side of the screen
             else:
-                if self.move_dir == 2:  # moving left
+                if self.move_dir == self.DIR["LEFT"]:
                     self.x -= self.step_len
                     self.maze.center(self, "y", self.y)
-                if self.move_dir == 0:  # moving right
+                if self.move_dir == self.DIR["RIGHT"]:
                     self.x += self.step_len
                     self.maze.center(self, "y", self.y)
                 # screen wrap
@@ -233,7 +273,8 @@ class Ghost:
 
             self.turn_timer += 1
 
-        # ghost stays inside the house
+        # HOUSE MODE
+        # ghost stays in the house and paces left and right
         elif self.mode == "house":
             if self.look_dir == self.DIR["DOWN"] or self.look_dir == self.DIR["UP"]:
                 self.look_dir = random.choice([self.DIR["LEFT"], self.DIR["RIGHT"]])
@@ -243,14 +284,16 @@ class Ghost:
                 self.move_dir = self.look_dir
             self.x += step * self.COORD_DIR[self.move_dir][0]
 
-        # re-spawn if time has passed
+        # DEAD MODE
         elif self.mode == "dead":
-            if self.timer >= self.main.fps * self.respawn_time:
+            # Re-spawn if time has passed
+            if self.respawn_timer >= self.main.fps * self.respawn_time:
                 self.x = 10 * self.block_size - self.block_size / 2
                 self.y = 10 * self.block_size - self.block_size / 2
                 self.mode = "normal"
+            # Eyes use Dij
             else:
-                self.timer += 1
+                self.respawn_timer += 1
 
     def draw(self):
         def draw_body(col):
@@ -308,8 +351,8 @@ class Ghost:
         if self.mode != "dead":
             if self.blue and self.player.powered_up:
                 # blink blue and white in the last 2 seconds of power up time
-                if 0 < self.timer % 40 < 20 \
-                        and self.timer + (2 * self.main.fps) >= self.player.power_time * self.main.fps:
+                if 0 < self.blue_timer % 40 < 20 \
+                        and self.blue_timer + (2 * self.main.fps) >= self.player.power_time * self.main.fps:
                     color = (200, 200, 255)  # very light blue
                 else:
                     color = (50, 50, 200)  # dark blue
@@ -321,14 +364,16 @@ class Ghost:
     def collide(self):
         dist_x = abs(self.x - self.player.x)
         dist_y = abs(self.y - self.player.y)
-
         touch_distance = self.size / 2
 
         if dist_x < touch_distance and dist_y < touch_distance and self.mode != "dead":
             if self.blue and self.player.powered_up:
-                self.timer = 0
-                self.main.score += 10
-                self.blue = False
                 self.mode = "dead"
-            else:
+                self.blue = False
+                self.blue_timer = 0
+                self.respawn_timer = 0
+                self.main.score += 10
+                self.x = 9 * self.block_size + self.block_size / 2
+                self.y = 9 * self.block_size + self.block_size / 2
+            elif not self.blue:
                 self.main.game_state = "lose"
