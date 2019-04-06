@@ -12,14 +12,15 @@ class PacMan:
         # Constants
         self.size = 26
         self.step_len = main.block_size / 15
+        self.step = self.step_len
         self.block_size = self.main.block_size
         self.offset = self.main.offset
 
         # Movement directions
         self.DIR = {"RIGHT": 0, "DOWN": 1, "LEFT": 2, "UP": 3}
         self.COORD_DIR = {0: [1, 0], 1: [0, 1], 2: [-1, 0], 3: [0, -1]}
-        self.look_dir = None
-        self.move_dir = None
+        self.look_dir = 3
+        self.move_dir = 3
 
         # Location in pixels
         self.array_coord = [x, y]

@@ -139,20 +139,18 @@ class Ghost:
 
         def find_closest(facing, target_pos):
             return_dir = facing
-            next_pos = [self.array_coord[0] + self.COORD_DIR[facing][0],
-                        self.array_coord[1] + self.COORD_DIR[facing][1]]
+            next_pos = list(map(add, self.array_coord, self.COORD_DIR[facing]))
             dir_min = find_distance(next_pos, target_pos)
             # check left turn
             if self.maze.can_move(self, left_turn(facing)):
-                next_pos = [self.array_coord[0] + self.COORD_DIR[left_turn(facing)][0],
-                            self.array_coord[1] + self.COORD_DIR[left_turn(facing)][1]]
+                next_pos = list(map(add, self.array_coord, self.COORD_DIR[left_turn(facing)]))
                 next_dir = find_distance(next_pos, target_pos)
                 if next_dir < dir_min:
+                    dir_min = next_dir
                     return_dir = left_turn(facing)
             # check right turn
             if self.maze.can_move(self, right_turn(facing)):
-                next_pos = [self.array_coord[0] + self.COORD_DIR[right_turn(facing)][0],
-                            self.array_coord[1] + self.COORD_DIR[right_turn(facing)][1]]
+                next_pos = list(map(add, self.array_coord, self.COORD_DIR[right_turn(facing)]))
                 next_dir = find_distance(next_pos, target_pos)
                 if next_dir < dir_min:
                     return_dir = right_turn(facing)
@@ -171,10 +169,10 @@ class Ghost:
             step = self.step
 
         if self.mode == "normal" or self.mode == "dead":
-            self.array_coord = [int((self.x + self.block_size / 2) / self.block_size),
-                                int((self.y + self.block_size / 2) / self.block_size)]
+            # Update current position in array
+            self.array_coord = [int(self.x / self.block_size), int(self.y / self.block_size)]
 
-            # only try changing direction if within bounds of maze array
+            # Only try changing direction if within bounds of maze array
             if self.block_size < self.x < self.main.display_width - self.block_size:
                 my_row = int(self.y / self.block_size)
                 my_col = int(self.x / self.block_size)
@@ -233,8 +231,8 @@ class Ghost:
                                 self.turn_timer = 0
                         # if player not visible, pick a random movement direction
                         else:
-                            self.look_dir = random.choice([self.move_dir,
-                                                           left_turn(self.move_dir), right_turn(self.move_dir)])
+                            self.look_dir = random.choice([self.move_dir, left_turn(self.move_dir),
+                                                           right_turn(self.move_dir)])
                             self.turn_timer = 0
 
                 # set target position based on current behaviour
@@ -263,7 +261,7 @@ class Ghost:
 
                 # move towards target, only attempt a turn at an intersection
                 if step < self.x % self.block_size < self.block_size - step \
-                        and step < self.y % self.block_size < self.block_size - step and self.turn_timer > 1:
+                        and step < self.y % self.block_size < self.block_size - step and self.turn_timer > 2:
                     if self.maze.can_move(self, left_turn(self.look_dir)) \
                             or self.maze.can_move(self, right_turn(self.look_dir)):
                         self.look_dir = find_closest(self.look_dir, target_coord)
