@@ -5,14 +5,6 @@ from operator import *
 import math
 
 
-def right_turn(facing):
-    return abs((facing + 1) % 4)
-
-
-def left_turn(facing):
-    return abs((facing - 1) % 4)
-
-
 def draw_ghosts():
     for ghost in Ghost.instances:
         ghost.draw()
@@ -102,7 +94,7 @@ class Ghost:
         self.slow_step = self.block_size / 24  # movement speed when turned blue
         self.step = self.step_len
         self.personality = personality
-        self.scatter_time = 7
+        self.scatter_time = 5
         self.chase_time = 20
 
         # MOVEMENT
@@ -155,6 +147,12 @@ class Ghost:
                 if next_dir < dir_min:
                     return_dir = right_turn(facing)
             return return_dir
+
+        def left_turn(facing):
+            return abs((facing - 1) % 4)
+
+        def right_turn(facing):
+            return abs((facing + 1) % 4)
 
         # Set step length based on current state
         step = self.step_len
@@ -237,13 +235,13 @@ class Ghost:
 
                 # set target position based on current behaviour
                 if self.mode == "normal":
+                    # Immediately exit house
                     if self.array_coord == [9, 9]:
                         target_coord = [9, 7]
-                    # SCATTER MODE
+                    # Scatter
                     elif (self.main.tick_counter / 60) / 7 < 1:
                         target_coord = self.scatter_coord
-
-                    # CHASE MODE
+                    # Chase Pac-Man
                     else:
                         target_coord = self.player.array_coord
                         if self.personality == "speedy":
@@ -254,7 +252,6 @@ class Ghost:
                             target_coord = self.scatter_coord
                         if self.personality == "bashful":
                             target_coord = self.factory.inky_target()
-
                 # if dead, move back to ghost house
                 elif self.mode == "dead":
                     target_coord = [9, 9]
@@ -391,7 +388,7 @@ class Ghost:
         touch_distance = self.size / 2
 
         if dist_x < touch_distance and dist_y < touch_distance and self.mode != "dead":
-            if self.blue and self.player.powered_up:
+            if self.blue:
                 self.mode = "dead"
                 self.blue = False
                 self.blue_timer = 0

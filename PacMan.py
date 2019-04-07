@@ -29,13 +29,11 @@ class PacMan:
 
         # Setup vars
         self.powered_up = False
-        self.previously_powered = False
         self.timer = 0
         self.power_time = 10
 
     def power_up(self, time):
         Ghost.turn_blue()
-        self.previously_powered = False
         self.powered_up = True
         self.power_time = time
         self.timer = 0
@@ -46,12 +44,10 @@ class PacMan:
                             int((self.y + self.block_size / 2) / self.block_size)]
 
         if self.powered_up:
-            # end powerup at end of timer
+            # end power up at end of timer
             if self.timer >= self.power_time * self.main.fps:
                 self.powered_up = False
                 Ghost.end_blue()
-            elif self.timer >= 1:
-                self.previously_powered = True
             else:
                 self.timer += 1
 
