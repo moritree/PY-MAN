@@ -1,5 +1,6 @@
 import pygame
 import Ghost
+import math
 
 
 class PacMan:
@@ -10,7 +11,7 @@ class PacMan:
         self.main = main
 
         # Constants
-        self.size = 26
+        self.size = 28
         self.step_len = main.block_size / 15
         self.step = self.step_len
         self.block_size = self.main.block_size
@@ -78,5 +79,24 @@ class PacMan:
                 self.x = -self.size
 
     def draw(self):
-        pygame.draw.ellipse(self.display, (255, 255, 0),
-                            (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))
+        def draw_wedge_pacman(wedge_angle):
+            radius = self.size / 2
+            n_points = 60
+            point_separation = math.radians((360 - wedge_angle) / n_points)
+            current_angle = math.radians(wedge_angle / 2)
+            pointlist = [(self.x, self.y + self.offset) for i in range(n_points)]
+
+            for i in range(1, n_points):
+                pointlist[i] = (self.x + math.cos(current_angle) * radius,
+                                self.y + math.sin(current_angle) * radius + self.offset)
+                current_angle += point_separation
+
+            pygame.draw.polygon(self.display, (255, 255, 0), pointlist)
+
+        # pygame.draw.ellipse(self.display, (255, 255, 0),
+        #                     (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))
+        if self.main.tick_counter % 18 < 9:
+            draw_wedge_pacman((self.main.tick_counter % 9) * 15)
+        else:
+            draw_wedge_pacman(120 - (self.main.tick_counter % 9) * 15)
+

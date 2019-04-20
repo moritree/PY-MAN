@@ -239,7 +239,7 @@ class Ghost:
                     if self.array_coord == [9, 9]:
                         target_coord = [9, 7]
                     # Scatter
-                    elif (self.main.tick_counter / 60) / 7 < 1:
+                    elif (self.main.tick_counter / 60) % (self.chase_time + self.scatter_time) < self.scatter_time:
                         target_coord = self.scatter_coord
                     # Chase Pac-Man
                     else:
