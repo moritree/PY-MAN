@@ -83,7 +83,7 @@ class PacMan:
             radius = self.size / 2
             n_points = 60
             point_separation = math.radians((360 - wedge_angle) / n_points)
-            current_angle = math.radians(wedge_angle / 2)
+            current_angle = math.radians(90 * self.move_dir + wedge_angle / 2)
             pointlist = [(self.x, self.y + self.offset) for i in range(n_points)]
 
             for i in range(1, n_points):
