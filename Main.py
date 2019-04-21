@@ -61,7 +61,7 @@ class Main:
         Ghost.draw_ghosts()
 
         game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
-        game_font.render_to(display, (15, 15), "SCORE: " + str(self.coins), (255, 255, 255))
+        game_font.render_to(display, (15, 15), "SCORE: " + str(self.score), (255, 255, 255))
 
     def run(self):
         # initialize
