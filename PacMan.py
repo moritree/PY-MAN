@@ -66,12 +66,11 @@ class PacMan:
 
         # If outside maze, keep moving forwards until wrapped to the other side of the screen
         else:
+            self.maze.center(self, "y", self.y)
             if self.move_dir == self.DIR["LEFT"]:
                 self.x -= step
-                self.maze.center(self, "y", self.y)
             if self.move_dir == self.DIR["RIGHT"]:
                 self.x += step
-                self.maze.center(self, "y", self.y)
             # Screen wrap
             if self.x < -self.size:
                 self.x = self.main.display_width
@@ -93,9 +92,8 @@ class PacMan:
 
             pygame.draw.polygon(self.display, (255, 255, 0), pointlist)
 
-        # pygame.draw.ellipse(self.display, (255, 255, 0),
-        #                     (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))
-        if self.maze.can_move(self, self.move_dir):
+        if (not self.block_size < self.x < self.main.display_width - self.block_size - self.size) \
+                or self.maze.can_move(self, self.move_dir):
             if self.main.tick_counter % 18 < 9:
                 draw_wedge_pacman((self.main.tick_counter % 9) * 15)
             else:
