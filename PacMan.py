@@ -11,7 +11,7 @@ class PacMan:
         self.main = main
 
         # Constants
-        self.size = 28
+        self.size = 26
         self.step_len = main.block_size / 15
         self.step = self.step_len
         self.block_size = self.main.block_size
@@ -95,8 +95,10 @@ class PacMan:
 
         # pygame.draw.ellipse(self.display, (255, 255, 0),
         #                     (self.x - self.size / 2, self.y - self.size / 2 + self.offset, self.size, self.size))
-        if self.main.tick_counter % 18 < 9:
-            draw_wedge_pacman((self.main.tick_counter % 9) * 15)
+        if self.maze.can_move(self, self.move_dir):
+            if self.main.tick_counter % 18 < 9:
+                draw_wedge_pacman((self.main.tick_counter % 9) * 15)
+            else:
+                draw_wedge_pacman(120 - (self.main.tick_counter % 9) * 15)
         else:
-            draw_wedge_pacman(120 - (self.main.tick_counter % 9) * 15)
-
+            draw_wedge_pacman(75)
