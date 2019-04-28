@@ -1,6 +1,5 @@
 import pygame
 import Ghost
-from operator import add
 
 
 class Maze:
