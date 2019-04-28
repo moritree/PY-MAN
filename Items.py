@@ -24,7 +24,7 @@ class ItemFactory:
     def make_coins(self):
         for i in range(0, len(self.array)):
             for j in range(0, len(self.array[i])):
-                if self.array[j][i] == 0:
+                if self.array[j][i] in([0, 4]):
                     flag = False
                     for item in PowerUp.instances:
                         if item.x_coord == i and item.y_coord == j:

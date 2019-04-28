@@ -17,7 +17,7 @@ class Maze:
         self.maze_array[3]  = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
         self.maze_array[4]  = [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1]
         self.maze_array[5]  = [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-        self.maze_array[6]  = [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1]
+        self.maze_array[6]  = [1, 1, 1, 1, 0, 1, 1, 1, 4, 1, 4, 1, 1, 1, 0, 1, 1, 1, 1]
         self.maze_array[7]  = [3, 3, 3, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 3, 3, 3]
         self.maze_array[8]  = [1, 1, 1, 1, 0, 1, 0, 1, 1, 2, 1, 1, 0, 1, 0, 1, 1, 1, 1]
         self.maze_array[9]  = [0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0]
@@ -49,11 +49,13 @@ class Maze:
         setattr(entity, var, int(coord / self.block_size) * self.block_size + self.block_size / 2)
 
     def can_move(self, entity, dir):
-        allowed = [0, 3]
+        allowed = [0, 3, 4]
         if isinstance(entity, Ghost.Ghost):
             if (entity.mode == "normal" and 9 <= entity.array_coord[0] <= 11 and 8 <= entity.array_coord[1] <= 11) \
                     or entity.mode == "dead":
                 allowed = [0, 2, 3]
+            elif dir == entity.DIR["UP"]:
+                allowed = [0, 3]
 
         if dir == entity.DIR["UP"] or dir == entity.DIR["DOWN"]:
             x_plus = int((entity.x + self.block_size / 2 - entity.step) / self.block_size)
