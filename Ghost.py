@@ -248,9 +248,9 @@ class Ghost:
                         target_coord = self.player.array_coord
                         if self.personality == "speedy":
                             target_coord = \
-                                [self.player.array_coord[0] + self.player.COORD_DIR[self.player.move_dir][0] * 4,
-                                 self.player.array_coord[1] + self.player.COORD_DIR[self.player.move_dir][1] * 4]
-                        if self.personality == "pokey" and find_distance(self.array_coord, self.player.array_coord) < 8:
+                                [self.player.array_coord[0] + self.player.COORD_DIR[self.player.move_dir][0] * 2,
+                                 self.player.array_coord[1] + self.player.COORD_DIR[self.player.move_dir][1] * 2]
+                        if self.personality == "pokey" and find_distance(self.array_coord, self.player.array_coord) < 3:
                             target_coord = self.scatter_coord
                         if self.personality == "bashful":
                             target_coord = self.factory.inky_target()
