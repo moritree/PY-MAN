@@ -47,9 +47,9 @@ class GhostFactory:
         self.pinky = Ghost(self.maze, self.display, self.player, self.main,
                            8, 9, (255, 100, 150), [2, 2], "speedy", self)
         self.inky = Ghost(self.maze, self.display, self.player, self.main,
-                          9, 9, (100, 255, 255), [16, 16], "bashful", self)
+                          9, 9, (100, 255, 255), [16, 18], "bashful", self)
         self.clyde = Ghost(self.maze, self.display, self.player, self.main,
-                           10, 9, (255, 200, 000), [2, 16], "pokey", self)
+                           10, 9, (255, 200, 000), [2, 18], "pokey", self)
 
         self.blinky.mode = "normal"
         self.pinky.mode = "normal"
