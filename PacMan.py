@@ -27,6 +27,8 @@ class PacMan:
         self.array_coord = [x, y]
         self.x = x * main.block_size + main.block_size / 2
         self.y = y * main.block_size + main.block_size / 2
+        self.spawn_x = self.x
+        self.spawn_y = self.y
 
         # Setup vars
         self.powered_up = False
@@ -77,7 +79,7 @@ class PacMan:
             if self.x > self.size + self.main.display_width:
                 self.x = -self.size
 
-    def draw(self):
+    def draw(self, mode):
         def draw_wedge_pacman(wedge_angle):
             radius = self.size / 2
             n_points = 60
@@ -92,11 +94,25 @@ class PacMan:
 
             pygame.draw.polygon(self.display, (255, 255, 0), pointlist)
 
-        if (not self.block_size < self.x < self.main.display_width - self.block_size - self.size) \
-                or self.maze.can_move(self, self.move_dir):
-            if self.main.tick_counter % 18 < 9:
-                draw_wedge_pacman((self.main.tick_counter % 9) * 15)
+        def draw_while_running():
+            if (not self.block_size < self.x < self.main.display_width - self.block_size - self.size) \
+                    or self.maze.can_move(self, self.move_dir):
+                if self.main.tick_counter % 18 < 9:
+                    draw_wedge_pacman((self.main.tick_counter % 9) * 15)
+                else:
+                    draw_wedge_pacman(120 - (self.main.tick_counter % 9) * 15)
             else:
-                draw_wedge_pacman(120 - (self.main.tick_counter % 9) * 15)
-        else:
-            draw_wedge_pacman(75)
+                draw_wedge_pacman(75)
+
+        if mode == "run":
+            draw_while_running()
+
+        elif mode == "respawn":
+            if self.main.temp_counter < 25:
+                draw_wedge_pacman(0 + 15 * self.main.temp_counter)
+                self.main.temp_counter += 1
+            else:
+                self.main.game_state = "run"
+                self.x = self.spawn_x
+                self.y = self.spawn_y
+                draw_while_running()

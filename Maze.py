@@ -9,7 +9,7 @@ class Maze:
         self.offset = main.offset
 
         # draw maze
-        self.maze_array = [[0] * 19 for i in range(19)] # [y][x]
+        self.maze_array = [[0] * main.maze_width for i in range(main.maze_height)]  # [y][x]
 
         self.maze_array[0]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.maze_array[1]  = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1]

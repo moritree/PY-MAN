@@ -14,12 +14,15 @@ class Main:
         self.maze_width = 19
         self.maze_height = 19
 
+        self.lives = 3;
+
         self.display_width = self.maze_width * self.block_size
         self.display_height = self.maze_height * self.block_size + self.offset
 
         self.fps = 60
         self.fps_clock = pygame.time.Clock()
         self.tick_counter = 1
+        self.temp_counter = 0
 
         self.score = 0
         self.coins = 0
@@ -57,11 +60,13 @@ class Main:
 
         maze.draw()
         item_factory.draw_all()
-        player.draw()
+        player.draw(self.game_state)
         Ghost.draw_ghosts()
 
         game_font = pygame.freetype.SysFont("Helvetica.ttf", 40)
         game_font.render_to(display, (15, 15), "SCORE: " + str(self.score), (255, 255, 255))
+        game_font = pygame.freetype.SysFont("Helvetica.ttf", 20)
+        game_font.render_to(display, (300, 15), str(self.lives) + " LIVES", (255, 255, 255))
 
     def run(self):
         # initialize
@@ -83,7 +88,7 @@ class Main:
 
         # running game loop
         while self.running:
-            if self.game_state == "run":
+            if self.game_state in("run", "respawn"):
 
                 # main game loop
                 self.events(player)

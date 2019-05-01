@@ -395,4 +395,9 @@ class Ghost:
                 self.respawn_timer = 0
                 self.main.score += 10
             elif not self.blue:
-                self.main.game_state = "lose"
+                if self.main.lives > 0:
+                    self.main.game_state = "respawn"
+                    self.main.lives -= 1
+                    self.main.temp_counter = 0
+                else:
+                    self.main.game_state = "lose"
