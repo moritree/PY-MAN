@@ -240,7 +240,6 @@ class Ghost:
                         target_coord = [9, 7]
                     elif self.array_coord in([9, 8], [9, 7]) and self.move_dir == self.DIR["UP"]:
                         target_coord = [8, 7]
-
                     # Scatter
                     elif (self.main.tick_counter / 60) % (self.chase_time + self.scatter_time) < self.scatter_time:
                         target_coord = self.scatter_coord
@@ -402,5 +401,7 @@ class Ghost:
                     self.main.game_state = "respawn"
                     self.main.lives -= 1
                     self.main.temp_counter = 0
+                    self.x = 9 * self.block_size + self.size / 2
+                    self.y = 9 * self.block_size + self.size / 2
                 else:
                     self.main.game_state = "lose"

@@ -17,20 +17,20 @@ class ItemFactory:
 
     def make_powerups(self):
         x = [1, 17, 1, 17]
-        y = [2, 16, 16, 2]
+        y = [2, 15, 15, 2]
         for i in range(len(x)):
-            power_up = PowerUp(x[i], y[i], self.block_size, self.display)
+            PowerUp(x[i], y[i], self.block_size, self.display)
 
     def make_coins(self):
         for i in range(0, len(self.array)):
             for j in range(0, len(self.array[i])):
-                if self.array[j][i] in([0, 4]):
+                if self.array[i][j] in([0, 4]):
                     flag = False
                     for item in PowerUp.instances:
-                        if item.x_coord == i and item.y_coord == j:
+                        if item.x_coord == j and item.y_coord == i:
                             flag = True
                     if not flag:
-                        coin = Coin(i, j, self.block_size, self.display, self.main)
+                        Coin(j, i, self.block_size, self.display, self.main)
 
     def draw_all(self):
         for power_up in PowerUp.instances:
