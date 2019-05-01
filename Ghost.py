@@ -238,6 +238,8 @@ class Ghost:
                     # Immediately exit house
                     if self.array_coord == [9, 9]:
                         target_coord = [9, 7]
+                    if self.array_coord in([9, 8], [9,7]) and self.move_dir == self.DIR["UP"]:
+                        target_coord = [8, 7]
                     # Scatter
                     elif (self.main.tick_counter / 60) % (self.chase_time + self.scatter_time) < self.scatter_time:
                         target_coord = self.scatter_coord
